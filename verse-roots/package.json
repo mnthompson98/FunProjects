@@ -1,0 +1,13 @@
+{
+  "name": "verse-roots",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/web",
+    "data/ingestion"
+  ],
+  "scripts": {
+    "ingest": "npm run ingest --workspace=data/ingestion",
+    "verify": "npm run verify --workspace=data/ingestion"
+  }
+}
