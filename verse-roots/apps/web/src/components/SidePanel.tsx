@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { OriginalWord, StrongsEntry, ConcordanceResponse, ConcordanceEntry } from '../types';
 import { formatRef } from '../utils/formatRef';
 import { StudyTab } from './StudyTab';
+import type { User, SubscriptionStatus } from '../lib/supabase';
+import type { Study } from '../study/types';
 import './SidePanel.css';
 
 interface SidePanelProps {
@@ -10,11 +12,26 @@ interface SidePanelProps {
   onClose: () => void;
   /** Called when the user clicks a concordance entry to navigate to that verse. */
   onNavigate: (osisRef: string, strongs: string) => void;
+  onStudySaved: (study: Study) => void;
+  user: User | null;
+  subscriptionStatus: SubscriptionStatus;
+  onOpenAuth: () => void;
+  onOpenAccount: () => void;
 }
 
 type Tab = 'lexicon' | 'concordance' | 'study';
 
-export function SidePanel({ word, strongs, onClose, onNavigate }: SidePanelProps) {
+export function SidePanel({
+  word,
+  strongs,
+  onClose,
+  onNavigate,
+  onStudySaved,
+  user,
+  subscriptionStatus,
+  onOpenAuth,
+  onOpenAccount,
+}: SidePanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>('lexicon');
 
   return (
@@ -65,6 +82,11 @@ export function SidePanel({ word, strongs, onClose, onNavigate }: SidePanelProps
             focusStrongs={word.strongs}
             focusWord={word.originalText}
             focusLemma={strongs?.lemma ?? null}
+            onStudySaved={onStudySaved}
+            user={user}
+            subscriptionStatus={subscriptionStatus}
+            onOpenAuth={onOpenAuth}
+            onOpenAccount={onOpenAccount}
           />
         )}
       </div>

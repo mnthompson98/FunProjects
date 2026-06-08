@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Study, StudySection, STUDY_TEMPLATE } from '../study/types';
 import { saveStudy, getStudiesByVerse, deleteStudy } from '../study/db';
 import { formatRef } from '../utils/formatRef';
+import type { User, SubscriptionStatus } from '../lib/supabase';
 import './StudyTab.css';
 
 export interface StudyTabProps {
@@ -9,6 +10,11 @@ export interface StudyTabProps {
   focusStrongs: string | null;
   focusWord: string | null;
   focusLemma: string | null;
+  onStudySaved?: (study: Study) => void;
+  user?: User | null;
+  subscriptionStatus?: SubscriptionStatus;
+  onOpenAuth?: () => void;
+  onOpenAccount?: () => void;
 }
 
 function createBlankStudy(
@@ -30,7 +36,17 @@ function createBlankStudy(
   };
 }
 
-export function StudyTab({ verseRef, focusStrongs, focusWord, focusLemma }: StudyTabProps) {
+export function StudyTab({
+  verseRef,
+  focusStrongs,
+  focusWord,
+  focusLemma,
+  onStudySaved,
+  user,
+  subscriptionStatus,
+  onOpenAuth,
+  onOpenAccount,
+}: StudyTabProps) {
   const [study, setStudy] = useState<Study>(() =>
     createBlankStudy(verseRef, focusStrongs, focusWord),
   );
@@ -76,6 +92,7 @@ export function StudyTab({ verseRef, focusStrongs, focusWord, focusLemma }: Stud
           await saveStudy(updatedStudy);
           hasPersisted.current = true;
           setSaveStatus('saved');
+          onStudySaved?.(updatedStudy);
           if (fadeTimer.current) clearTimeout(fadeTimer.current);
           fadeTimer.current = setTimeout(() => setSaveStatus('idle'), 2000);
         } catch {
@@ -83,7 +100,7 @@ export function StudyTab({ verseRef, focusStrongs, focusWord, focusLemma }: Stud
         }
       }, 800);
     },
-    [],
+    [onStudySaved],
   );
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -172,13 +189,21 @@ export function StudyTab({ verseRef, focusStrongs, focusWord, focusLemma }: Stud
       </div>
 
       <div className="study-tab__footer">
-        <span
-          className={`study-tab__save-status ${saveStatus === 'saved' ? 'study-tab__save-status--saved' : ''} ${saveStatus === 'saving' ? 'study-tab__save-status--saving' : ''}`}
-        >
-          {saveStatus === 'saving' && 'Saving…'}
-          {saveStatus === 'saved' && 'Saved ✓'}
-          {saveStatus === 'idle' && (hasPersisted.current ? 'Autosaved ✓' : ' ')}
-        </span>
+        <div className="study-tab__status-row">
+          <span
+            className={`study-tab__save-status ${saveStatus === 'saved' ? 'study-tab__save-status--saved' : ''} ${saveStatus === 'saving' ? 'study-tab__save-status--saving' : ''}`}
+          >
+            {saveStatus === 'saving' && 'Saving…'}
+            {saveStatus === 'saved' && 'Saved ✓'}
+            {saveStatus === 'idle' && (hasPersisted.current ? 'Autosaved ✓' : ' ')}
+          </span>
+          <SyncIndicator
+            user={user ?? null}
+            subscriptionStatus={subscriptionStatus}
+            onOpenAuth={onOpenAuth}
+            onOpenAccount={onOpenAccount}
+          />
+        </div>
         <div className="study-tab__footer-actions">
           <button
             className="study-tab__btn study-tab__btn--danger"
@@ -255,4 +280,41 @@ function AccordionSection({
       )}
     </div>
   );
+}
+
+// ---------------------------------------------------------------------------
+// SyncIndicator
+// ---------------------------------------------------------------------------
+
+interface SyncIndicatorProps {
+  user: User | null;
+  subscriptionStatus: SubscriptionStatus | undefined;
+  onOpenAuth: (() => void) | undefined;
+  onOpenAccount: (() => void) | undefined;
+}
+
+function SyncIndicator({ user, subscriptionStatus, onOpenAuth, onOpenAccount }: SyncIndicatorProps) {
+  if (!user) {
+    return (
+      <button
+        className="study-tab__sync-hint"
+        onClick={onOpenAuth}
+        title="Sign in to sync across devices"
+      >
+        ☁ Sign in to sync
+      </button>
+    );
+  }
+  if (!subscriptionStatus?.canSync) {
+    return (
+      <button
+        className="study-tab__sync-hint"
+        onClick={onOpenAccount}
+        title="Upgrade to Pro to sync across devices"
+      >
+        ☁ Upgrade to sync
+      </button>
+    );
+  }
+  return <span className="study-tab__sync-active">☁ Synced</span>;
 }

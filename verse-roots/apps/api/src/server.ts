@@ -7,12 +7,20 @@ import {
   getChapter,
   getVerseTranslation,
 } from '@verse-roots/db';
+import { stripeRouter } from './stripe.js';
 
 const app = express();
 const PORT = 3001;
 
 app.use(cors({ origin: ['http://localhost:5173', 'http://127.0.0.1:5173'] }));
+
+// Stripe webhook requires raw body for signature verification — mount BEFORE express.json()
+app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }));
+
 app.use(express.json());
+
+// Stripe routes (checkout session + billing portal live under /api/stripe)
+app.use('/api/stripe', stripeRouter);
 
 app.get('/api/verse/:ref', (req, res) => {
   const { ref } = req.params;
