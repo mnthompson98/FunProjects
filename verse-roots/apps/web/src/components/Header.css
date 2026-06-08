@@ -31,6 +31,27 @@
   margin-top: 0.15rem;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.header-signin-btn {
+  background: var(--accent);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.85rem;
+  padding: 0.45rem 1rem;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+.header-signin-btn:hover {
+  opacity: 0.88;
+}
+
 .header-library-btn {
   background: none;
   border: 1px solid var(--border);

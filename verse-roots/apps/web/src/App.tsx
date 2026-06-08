@@ -1,13 +1,25 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { ReferenceInput } from './components/ReferenceInput';
 import { VerseDisplay } from './components/VerseDisplay';
 import { SidePanel } from './components/SidePanel';
 import { Library } from './components/Library';
+import { AuthModal } from './components/auth/AuthModal';
+import { AccountPage } from './components/auth/AccountPage';
 import { normalizeRef } from './normalizeRef';
 import { OriginalWord, VerseWithWords, StrongsEntry } from './types';
+import {
+  getCurrentUser,
+  onAuthStateChange,
+  getSubscriptionStatus,
+} from './lib/supabase';
+import type { User, SubscriptionStatus } from './lib/supabase';
+import { initialSync, maybeSyncStudy } from './study/sync';
+import type { Study } from './study/types';
 import './App.css';
+
+const FREE_STATUS: SubscriptionStatus = { plan: 'free', currentPeriodEnd: null, canSync: false };
 
 function App() {
   const [verse, setVerse] = useState<VerseWithWords | null>(null);
@@ -18,6 +30,50 @@ function App() {
   const [strongsLoading, setStrongsLoading] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
   const [selectedTranslation, setSelectedTranslation] = useState('KJV');
+
+  // Auth state
+  const [user, setUser] = useState<User | null>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus>(FREE_STATUS);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showAccount, setShowAccount] = useState(false);
+
+  const fetchSubscription = useCallback(async (u: User) => {
+    const status = await getSubscriptionStatus(u.id);
+    setSubscriptionStatus(status);
+    return status;
+  }, []);
+
+  // On mount: restore session and subscribe to auth changes
+  useEffect(() => {
+    getCurrentUser().then((u) => {
+      if (u) {
+        setUser(u);
+        fetchSubscription(u).then((status) => {
+          if (status.canSync) {
+            initialSync(u.id).catch((err) =>
+              console.warn('[sync] initialSync error:', err),
+            );
+          }
+        });
+      }
+    });
+
+    const unsubscribe = onAuthStateChange(async (u) => {
+      setUser(u);
+      if (u) {
+        const status = await fetchSubscription(u);
+        if (status.canSync) {
+          initialSync(u.id).catch((err) =>
+            console.warn('[sync] initialSync error:', err),
+          );
+        }
+      } else {
+        setSubscriptionStatus(FREE_STATUS);
+      }
+    });
+
+    return unsubscribe;
+  }, [fetchSubscription]);
 
   /**
    * Core verse-loading logic — shared by both the ReferenceInput and the
@@ -105,9 +161,28 @@ function App() {
     setSelectedStrongs(null);
   }, []);
 
+  /** Called by StudyTab after a successful local save */
+  const handleStudySaved = useCallback((study: Study) => {
+    if (user && subscriptionStatus.canSync) {
+      maybeSyncStudy(study, user.id, subscriptionStatus.canSync);
+    }
+  }, [user, subscriptionStatus.canSync]);
+
+  const handleManualSync = useCallback(async () => {
+    if (!user || !subscriptionStatus.canSync) return;
+    await initialSync(user.id);
+  }, [user, subscriptionStatus.canSync]);
+
   return (
     <div className="app">
-      <Header onOpenLibrary={() => setShowLibrary(true)} />
+      <Header
+        onOpenLibrary={() => setShowLibrary(true)}
+        user={user}
+        subscriptionStatus={subscriptionStatus}
+        onOpenAuth={() => setShowAuthModal(true)}
+        onOpenAccount={() => setShowAccount(true)}
+        onSync={handleManualSync}
+      />
       <main className="app__main">
         <div className="app__content">
           <ReferenceInput onSubmit={handleRefSubmit} loading={loading} error={error} />
@@ -126,6 +201,11 @@ function App() {
                   strongs={strongsLoading ? null : selectedStrongs}
                   onClose={handlePanelClose}
                   onNavigate={handleConcordanceNavigate}
+                  onStudySaved={handleStudySaved}
+                  user={user}
+                  subscriptionStatus={subscriptionStatus}
+                  onOpenAuth={() => setShowAuthModal(true)}
+                  onOpenAccount={() => setShowAccount(true)}
                 />
               )}
             </div>
@@ -136,6 +216,15 @@ function App() {
         <Library
           onOpen={(ref) => { loadVerse(ref); setShowLibrary(false); }}
           onClose={() => setShowLibrary(false)}
+        />
+      )}
+      {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
+      {showAccount && user && (
+        <AccountPage
+          user={user}
+          subscriptionStatus={subscriptionStatus}
+          onClose={() => setShowAccount(false)}
+          onSubscriptionUpdated={() => fetchSubscription(user)}
         />
       )}
       <Footer />

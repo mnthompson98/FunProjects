@@ -6,4 +6,5 @@ data/db/*.db-wal
 data/raw/
 dist/
 .env
+.env.local
 *.local

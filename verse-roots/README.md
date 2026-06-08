@@ -64,6 +64,29 @@ The King James Version text is in the public domain (first published 1611). Sour
 
 See [LICENSES/THIRD-PARTY-NOTICES.md](LICENSES/THIRD-PARTY-NOTICES.md) for full third-party notices.
 
+## Phase 2: Accounts & Cloud Sync
+
+### Prerequisites
+- Supabase project (free tier works): https://supabase.com
+- Stripe account: https://stripe.com
+
+### Supabase setup
+1. Create a new Supabase project
+2. Run `supabase/migrations/001_initial.sql` in the SQL editor
+3. Copy your project URL and anon key to `apps/web/.env.local`
+4. Copy your service role key to `apps/api/.env`
+
+### Stripe setup
+1. Create a product "Verse Roots Pro" with a $7/mo recurring price
+2. Copy the price ID and set it as `STRIPE_PRICE_ID` in `apps/api/.env`
+3. Add a webhook endpoint pointing to `https://your-domain.com/api/stripe/webhook`
+4. Subscribe to: customer.subscription.created/updated/deleted, checkout.session.completed
+5. Copy the webhook secret to `apps/api/.env`
+
+### Running locally with Phase 2
+The app runs without any env vars — auth and sync simply won't activate.
+Set the env vars above and restart to enable them.
+
 ## License
 
 Source code: MIT. Bible data: see [LICENSES/](LICENSES/).
