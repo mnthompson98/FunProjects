@@ -9,6 +9,7 @@
     "schema": "tsx src/schema.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.0.0",
     "better-sqlite3": "^9.4.3"
   },
   "devDependencies": {
