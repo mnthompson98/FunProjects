@@ -1,0 +1,9 @@
+{
+  "name": "@verse-roots/supabase-client",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.0.0"
+  }
+}

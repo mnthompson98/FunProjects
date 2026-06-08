@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "workspaces": [
     "packages/db",
+    "packages/supabase-client",
     "apps/web",
     "apps/api",
     "data/ingestion"

@@ -1,0 +1,2 @@
+-- Seed data (empty for now)
+-- Add test data here when needed
