@@ -4,7 +4,12 @@ import Database from 'better-sqlite3';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 function loadEnv() {
-  const envPath = resolve(process.cwd(), '../../apps/api/.env');
+  // Support running from repo root or from data/ingestion/
+  const candidates = [
+    resolve(process.cwd(), 'apps/api/.env'),
+    resolve(process.cwd(), '../../apps/api/.env'),
+  ];
+  for (const envPath of candidates) {
   try {
     const content = readFileSync(envPath, 'utf-8');
     for (const line of content.split('\n')) {
@@ -13,7 +18,11 @@ function loadEnv() {
         process.env[key] = vals.join('=').trim();
       }
     }
-  } catch {}
+    break; // found and loaded successfully
+  } catch {
+    // try next candidate
+  }
+  }
 }
 
 loadEnv();
@@ -28,7 +37,17 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
 
 const supabase: SupabaseClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-const DB_PATH = resolve(process.cwd(), '../../data/db/verse-roots.db');
+function findDbPath(): string {
+  const candidates = [
+    resolve(process.cwd(), 'data/db/verse-roots.db'),
+    resolve(process.cwd(), '../../data/db/verse-roots.db'),
+  ];
+  for (const p of candidates) {
+    try { readFileSync(p); return p; } catch { /* try next */ }
+  }
+  return candidates[0]; // will fail with a clear error
+}
+const DB_PATH = findDbPath();
 const db = new Database(DB_PATH, { readonly: true });
 
 async function getCount(table: string): Promise<number> {

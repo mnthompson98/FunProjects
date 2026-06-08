@@ -5,6 +5,7 @@
   "workspaces": [
     "packages/db",
     "packages/supabase-client",
+    "packages/bible-client",
     "apps/web",
     "apps/api",
     "data/ingestion"

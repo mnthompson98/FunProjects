@@ -9,6 +9,7 @@ import { AuthModal } from './components/auth/AuthModal';
 import { AccountPage } from './components/auth/AccountPage';
 import { normalizeRef } from './normalizeRef';
 import { OriginalWord, VerseWithWords, StrongsEntry } from './types';
+import { getVerse, getStrongs } from '@verse-roots/bible-client';
 import {
   getCurrentUser,
   onAuthStateChange,
@@ -91,16 +92,11 @@ function App() {
     setSelectedStrongs(null);
 
     try {
-      const res = await fetch(`/api/verse/${encodeURIComponent(ref)}`);
-      if (!res.ok) {
-        if (res.status === 404) {
-          setError(`Verse not found: "${ref}". Try "John 3:16" or "Gen 1:1".`);
-        } else {
-          setError(`Error fetching verse (${res.status})`);
-        }
+      const data = await getVerse(ref);
+      if (!data) {
+        setError(`Verse not found: "${ref}". Try "John 3:16" or "Gen 1:1".`);
         return;
       }
-      const data: VerseWithWords = await res.json();
       setVerse(data);
 
       // Auto-select the first word matching the Strong's number (concordance navigation)
@@ -109,11 +105,8 @@ function App() {
         if (match) {
           setSelectedWord(match);
           try {
-            const sRes = await fetch(`/api/strongs/${encodeURIComponent(autoSelectStrongs)}`);
-            if (sRes.ok) {
-              const sData: StrongsEntry = await sRes.json();
-              setSelectedStrongs(sData);
-            }
+            const sData: StrongsEntry | null = await getStrongs(autoSelectStrongs);
+            if (sData) setSelectedStrongs(sData);
           } catch {
             // Silently fail
           }
@@ -143,11 +136,8 @@ function App() {
     if (word.strongs) {
       setStrongsLoading(true);
       try {
-        const res = await fetch(`/api/strongs/${encodeURIComponent(word.strongs)}`);
-        if (res.ok) {
-          const data: StrongsEntry = await res.json();
-          setSelectedStrongs(data);
-        }
+        const data: StrongsEntry | null = await getStrongs(word.strongs);
+        if (data) setSelectedStrongs(data);
       } catch {
         // Silently fail — lexicon just shows empty
       } finally {
