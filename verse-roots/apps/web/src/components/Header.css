@@ -1,0 +1,24 @@
+.header {
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 1.25rem 1.5rem;
+}
+
+.header-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.header-title {
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+}
+
+.header-tagline {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+}

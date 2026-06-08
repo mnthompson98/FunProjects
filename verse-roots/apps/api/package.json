@@ -1,0 +1,19 @@
+{
+  "name": "@verse-roots/api",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/server.ts"
+  },
+  "dependencies": {
+    "@verse-roots/db": "*",
+    "cors": "^2.8.5",
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}

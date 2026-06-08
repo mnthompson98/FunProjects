@@ -5,10 +5,16 @@
   "workspaces": [
     "packages/db",
     "apps/web",
+    "apps/api",
     "data/ingestion"
   ],
   "scripts": {
     "ingest": "npm run ingest --workspace=data/ingestion",
-    "verify": "npm run verify --workspace=data/ingestion"
+    "verify": "npm run verify --workspace=data/ingestion",
+    "api": "npm run dev --workspace=apps/api",
+    "dev": "concurrently \"npm run api\" \"npm run dev --workspace=apps/web\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
   }
 }
