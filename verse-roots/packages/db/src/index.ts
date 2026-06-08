@@ -16,4 +16,5 @@ export {
   getConcordance,
   getVersesByBook,
   getChapter,
+  getVerseTranslation,
 } from './api.js';

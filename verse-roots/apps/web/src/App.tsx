@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Header } from './components/Header';
+import { Footer } from './components/Footer';
 import { ReferenceInput } from './components/ReferenceInput';
 import { VerseDisplay } from './components/VerseDisplay';
 import { SidePanel } from './components/SidePanel';
@@ -16,6 +17,7 @@ function App() {
   const [selectedStrongs, setSelectedStrongs] = useState<StrongsEntry | null>(null);
   const [strongsLoading, setStrongsLoading] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
+  const [selectedTranslation, setSelectedTranslation] = useState('KJV');
 
   /**
    * Core verse-loading logic — shared by both the ReferenceInput and the
@@ -115,6 +117,8 @@ function App() {
                 verse={verse}
                 selectedWordId={selectedWord?.id ?? null}
                 onWordClick={handleWordClick}
+                translation={selectedTranslation}
+                onTranslationChange={setSelectedTranslation}
               />
               {selectedWord && (
                 <SidePanel
@@ -134,13 +138,7 @@ function App() {
           onClose={() => setShowLibrary(false)}
         />
       )}
-      <footer className="app__footer">
-        Lexicon and tagged-text data &copy;{' '}
-        <a href="https://stepbible.org" target="_blank" rel="noopener noreferrer">
-          STEPBible.org
-        </a>
-        , CC BY 4.0 &middot; Original-language texts: TAHOT (Hebrew OT) and TAGNT (Greek NT)
-      </footer>
+      <Footer />
     </div>
   );
 }

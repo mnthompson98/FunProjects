@@ -5,6 +5,7 @@ import {
   getStrongs,
   getConcordance,
   getChapter,
+  getVerseTranslation,
 } from '@verse-roots/db';
 
 const app = express();
@@ -48,6 +49,16 @@ app.get('/api/concordance/:id', (req, res) => {
   const total = all.length;
   const results = all.slice(offset, offset + limit);
   res.json({ total, results });
+});
+
+app.get('/api/verse/:ref/translation/:translation', (req, res) => {
+  const { ref, translation } = req.params;
+  const result = getVerseTranslation(ref, translation.toUpperCase());
+  if (!result) {
+    res.status(404).json({ error: `Translation not found: ${ref} (${translation})` });
+    return;
+  }
+  res.json(result);
 });
 
 app.get('/api/chapter/:ref', (req, res) => {
