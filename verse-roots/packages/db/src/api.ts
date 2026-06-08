@@ -115,6 +115,9 @@ const stmts = {
   getVersesByChapter: db.prepare<[string, string], VerseRow>(
     'SELECT * FROM verses WHERE book = ? AND chapter = ? ORDER BY verse'
   ),
+  getVerseTranslation: db.prepare<[string, string], { ref: string; translation: string; text: string }>(
+    'SELECT ref, translation, text FROM verse_translations WHERE ref = ? AND translation = ?'
+  ),
 };
 
 // ---------------------------------------------------------------------------
@@ -209,6 +212,17 @@ export function getConcordance(strongs: string): ConcordanceEntry[] {
 export function getVersesByBook(book: string): Verse[] {
   const rows = stmts.getVersesByBook.all(`%${book}%`);
   return rows.map(mapVerse);
+}
+
+/**
+ * Returns the translation text for a given verse ref and translation code (e.g. 'KJV').
+ * Returns null if not found.
+ */
+export function getVerseTranslation(
+  ref: string,
+  translation: string
+): { ref: string; translation: string; text: string } | null {
+  return stmts.getVerseTranslation.get(ref, translation) ?? null;
 }
 
 /**
