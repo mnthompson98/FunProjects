@@ -1,0 +1,99 @@
+.user-menu {
+  position: relative;
+}
+
+.user-menu__trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  max-width: 220px;
+}
+.user-menu__trigger:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.user-menu__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.user-menu__email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-menu__caret {
+  font-size: 0.65rem;
+  flex-shrink: 0;
+}
+
+.user-menu__dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+  min-width: 180px;
+  z-index: 100;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.user-menu__plan-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  padding: 0.5rem 0.9rem 0.25rem;
+}
+
+.user-menu__item {
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 0.55rem 0.9rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.user-menu__item:hover {
+  background: color-mix(in srgb, transparent 90%, var(--accent) 10%);
+  color: var(--text);
+}
+.user-menu__item--danger {
+  color: #e57373;
+}
+.user-menu__item--danger:hover {
+  background: color-mix(in srgb, transparent 90%, #e57373 10%);
+  color: #e57373;
+}
+
+.user-menu__divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0.25rem 0;
+}

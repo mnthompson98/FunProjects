@@ -1,0 +1,11 @@
+node_modules/
+data/db/*.db
+data/db/*.sqlite
+data/db/*.db-shm
+data/db/*.db-wal
+data/raw/
+dist/
+.env
+.env.local
+*.local
+apps/api/.env

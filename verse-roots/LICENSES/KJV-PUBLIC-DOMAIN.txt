@@ -1,0 +1,7 @@
+King James Version (KJV) — Public Domain
+
+The King James Version of the Bible was first published in 1611 and is in the public domain
+in the United States and most other jurisdictions. No copyright applies.
+
+The KJV text used in this application is sourced from:
+https://github.com/aruljohn/Bible-kjv (public domain)
