@@ -1,16 +1,19 @@
-import { useState } from 'react';
-import { OriginalWord, StrongsEntry } from '../types';
+import { useState, useEffect, useRef } from 'react';
+import { OriginalWord, StrongsEntry, ConcordanceResponse, ConcordanceEntry } from '../types';
+import { formatRef } from '../utils/formatRef';
 import './SidePanel.css';
 
 interface SidePanelProps {
   word: OriginalWord;
   strongs: StrongsEntry | null;
   onClose: () => void;
+  /** Called when the user clicks a concordance entry to navigate to that verse. */
+  onNavigate: (osisRef: string, strongs: string) => void;
 }
 
 type Tab = 'lexicon' | 'concordance' | 'study';
 
-export function SidePanel({ word, strongs, onClose }: SidePanelProps) {
+export function SidePanel({ word, strongs, onClose, onNavigate }: SidePanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>('lexicon');
 
   return (
@@ -53,9 +56,7 @@ export function SidePanel({ word, strongs, onClose }: SidePanelProps) {
           <LexiconTab word={word} strongs={strongs} />
         )}
         {activeTab === 'concordance' && (
-          <div className="placeholder-tab">
-            <p>Concordance — coming soon</p>
-          </div>
+          <ConcordanceTab word={word} strongs={strongs} onNavigate={onNavigate} />
         )}
         {activeTab === 'study' && (
           <div className="placeholder-tab">
@@ -115,5 +116,151 @@ function LexiconTab({ word, strongs }: { word: OriginalWord; strongs: StrongsEnt
         </div>
       )}
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// ConcordanceTab
+// ---------------------------------------------------------------------------
+
+interface ConcordanceTabProps {
+  word: OriginalWord;
+  strongs: StrongsEntry | null;
+  onNavigate: (osisRef: string, strongs: string) => void;
+}
+
+function ConcordanceTab({ word, strongs, onNavigate }: ConcordanceTabProps) {
+  // Cache keyed by Strong's number so switching tabs doesn't re-fetch
+  const cache = useRef<Map<string, ConcordanceResponse>>(new Map());
+  const [data, setData] = useState<ConcordanceResponse | null>(null);
+  const [fetching, setFetching] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!word.strongs) return;
+
+    const id = word.strongs;
+
+    if (cache.current.has(id)) {
+      setData(cache.current.get(id)!);
+      return;
+    }
+
+    let cancelled = false;
+    setFetching(true);
+    setFetchError(null);
+    setData(null);
+
+    fetch(`/api/concordance/${encodeURIComponent(id)}`)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json() as Promise<ConcordanceResponse>;
+      })
+      .then((json) => {
+        if (cancelled) return;
+        cache.current.set(id, json);
+        setData(json);
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setFetchError(err instanceof Error ? err.message : String(err));
+      })
+      .finally(() => {
+        if (!cancelled) setFetching(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [word.strongs]);
+
+  if (!word.strongs) {
+    return (
+      <div className="concordance-tab">
+        <p className="concordance-no-strongs">This word has no Strong&apos;s number.</p>
+      </div>
+    );
+  }
+
+  if (fetching) {
+    return (
+      <div className="concordance-tab">
+        <div className="concordance-spinner" aria-label="Loading concordance" />
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div className="concordance-tab">
+        <p className="concordance-error">Failed to load concordance: {fetchError}</p>
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
+  const lemmaLabel = strongs?.lemma ?? word.originalText;
+  const countLabel =
+    data.total > data.results.length
+      ? `${data.total}+ occurrences`
+      : `${data.total} occurrence${data.total === 1 ? '' : 's'}`;
+
+  return (
+    <div className="concordance-tab">
+      <p className="concordance-header">
+        {countLabel} of <span className="concordance-header__lemma">{lemmaLabel}</span>{' '}
+        <span className="concordance-header__strongs">({word.strongs})</span>
+      </p>
+      <ul className="concordance-list">
+        {data.results.map((entry) => (
+          <ConcordanceItem
+            key={entry.verseRef}
+            entry={entry}
+            strongs={word.strongs!}
+            onNavigate={onNavigate}
+          />
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+interface ConcordanceItemProps {
+  entry: ConcordanceEntry;
+  strongs: string;
+  onNavigate: (osisRef: string, strongs: string) => void;
+}
+
+function ConcordanceItem({ entry, strongs, onNavigate }: ConcordanceItemProps) {
+  const handleActivate = () => onNavigate(entry.verseRef, strongs);
+
+  return (
+    <li
+      className="concordance-item"
+      role="button"
+      tabIndex={0}
+      onClick={handleActivate}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleActivate();
+        }
+      }}
+    >
+      <span className="concordance-item__ref">{formatRef(entry.verseRef)}</span>
+      {entry.words.length > 0 && (
+        <span className="concordance-item__words">
+          {entry.words.map((w, i) => (
+            <span key={i} className="concordance-item__word">
+              <span className="concordance-item__original">{w.originalText}</span>
+              {w.gloss && (
+                <span className="concordance-item__gloss"> — {w.gloss}</span>
+              )}
+            </span>
+          ))}
+        </span>
+      )}
+    </li>
   );
 }

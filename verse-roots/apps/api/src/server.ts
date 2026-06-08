@@ -35,8 +35,19 @@ app.get('/api/strongs/:id', (req, res) => {
 
 app.get('/api/concordance/:id', (req, res) => {
   const { id } = req.params;
-  const results = getConcordance(id).slice(0, 50);
-  res.json(results);
+  const limitParam = parseInt(String(req.query.limit ?? '50'), 10);
+  const limit = isNaN(limitParam) ? 50 : Math.min(Math.max(limitParam, 1), 200);
+  const offsetParam = parseInt(String(req.query.offset ?? '0'), 10);
+  const offset = isNaN(offsetParam) ? 0 : Math.max(offsetParam, 0);
+  const book = typeof req.query.book === 'string' ? req.query.book : null;
+
+  let all = getConcordance(id);
+  if (book) {
+    all = all.filter((e) => e.book === book);
+  }
+  const total = all.length;
+  const results = all.slice(offset, offset + limit);
+  res.json({ total, results });
 });
 
 app.get('/api/chapter/:ref', (req, res) => {

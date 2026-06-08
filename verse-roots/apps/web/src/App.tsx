@@ -15,8 +15,15 @@ function App() {
   const [selectedStrongs, setSelectedStrongs] = useState<StrongsEntry | null>(null);
   const [strongsLoading, setStrongsLoading] = useState(false);
 
-  const handleRefSubmit = useCallback(async (raw: string) => {
-    const ref = normalizeRef(raw);
+  /**
+   * Core verse-loading logic — shared by both the ReferenceInput and the
+   * concordance "click to navigate" path.  `autoSelectStrongs` lets the
+   * concordance tab automatically highlight the word it just navigated to.
+   */
+  const loadVerse = useCallback(async (
+    ref: string,
+    autoSelectStrongs?: string,
+  ) => {
     setLoading(true);
     setError(null);
     setVerse(null);
@@ -27,7 +34,7 @@ function App() {
       const res = await fetch(`/api/verse/${encodeURIComponent(ref)}`);
       if (!res.ok) {
         if (res.status === 404) {
-          setError(`Verse not found: "${raw}". Try "John 3:16" or "Gen 1:1".`);
+          setError(`Verse not found: "${ref}". Try "John 3:16" or "Gen 1:1".`);
         } else {
           setError(`Error fetching verse (${res.status})`);
         }
@@ -35,12 +42,39 @@ function App() {
       }
       const data: VerseWithWords = await res.json();
       setVerse(data);
+
+      // Auto-select the first word matching the Strong's number (concordance navigation)
+      if (autoSelectStrongs) {
+        const match = data.words.find((w) => w.strongs === autoSelectStrongs);
+        if (match) {
+          setSelectedWord(match);
+          try {
+            const sRes = await fetch(`/api/strongs/${encodeURIComponent(autoSelectStrongs)}`);
+            if (sRes.ok) {
+              const sData: StrongsEntry = await sRes.json();
+              setSelectedStrongs(sData);
+            }
+          } catch {
+            // Silently fail
+          }
+        }
+      }
     } catch (err) {
       setError(`Network error: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setLoading(false);
     }
   }, []);
+
+  const handleRefSubmit = useCallback(async (raw: string) => {
+    const ref = normalizeRef(raw);
+    await loadVerse(ref);
+  }, [loadVerse]);
+
+  /** Called by ConcordanceTab when the user clicks an entry */
+  const handleConcordanceNavigate = useCallback((osisRef: string, strongs: string) => {
+    loadVerse(osisRef, strongs);
+  }, [loadVerse]);
 
   const handleWordClick = useCallback(async (word: OriginalWord) => {
     setSelectedWord(word);
@@ -85,6 +119,7 @@ function App() {
                   word={selectedWord}
                   strongs={strongsLoading ? null : selectedStrongs}
                   onClose={handlePanelClose}
+                  onNavigate={handleConcordanceNavigate}
                 />
               )}
             </div>

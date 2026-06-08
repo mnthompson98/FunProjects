@@ -168,6 +168,116 @@
   padding: 1rem 0;
 }
 
+/* Concordance tab */
+.concordance-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  height: 100%;
+}
+
+.concordance-no-strongs,
+.concordance-error {
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 0.5rem 0;
+}
+
+.concordance-error {
+  color: #e07070;
+}
+
+.concordance-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin: 1.5rem auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.concordance-header {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.4;
+}
+
+.concordance-header__lemma {
+  font-family: var(--font-serif);
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.concordance-header__strongs {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.concordance-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
+  /* Give the list its own scroll region */
+  max-height: calc(100vh - 260px);
+}
+
+.concordance-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.55rem 0.25rem;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.12s;
+  outline: none;
+}
+
+.concordance-item:hover,
+.concordance-item:focus {
+  background: color-mix(in srgb, var(--surface) 70%, var(--accent) 30%);
+}
+
+.concordance-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.concordance-item__ref {
+  font-weight: 700;
+  color: #e8c96a;
+  font-size: 0.88rem;
+}
+
+.concordance-item__words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.concordance-item__word {
+  font-size: 0.82rem;
+}
+
+.concordance-item__original {
+  font-family: var(--font-serif);
+  color: var(--text);
+}
+
+.concordance-item__gloss {
+  font-style: italic;
+  color: var(--text-muted);
+}
+
 /* Mobile: side panel goes below verse */
 @media (max-width: 768px) {
   .side-panel {

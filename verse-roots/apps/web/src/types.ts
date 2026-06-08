@@ -33,3 +33,16 @@ export interface WordWithLexicon extends OriginalWord {
 export interface VerseWithWords extends Verse {
   words: WordWithLexicon[];
 }
+
+export interface ConcordanceEntry {
+  verseRef: string;
+  book: string;
+  chapter: number;
+  verse: number;
+  words: OriginalWord[];
+}
+
+export interface ConcordanceResponse {
+  total: number;
+  results: ConcordanceEntry[];
+}
