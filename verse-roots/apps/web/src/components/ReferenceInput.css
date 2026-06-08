@@ -1,0 +1,63 @@
+.reference-input-container {
+  padding: 1.5rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.reference-form {
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+.reference-input {
+  flex: 1;
+  padding: 0.65rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 1rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.reference-input:focus {
+  border-color: var(--accent);
+}
+
+.reference-input::placeholder {
+  color: var(--text-muted);
+}
+
+.reference-input:disabled {
+  opacity: 0.6;
+}
+
+.reference-submit {
+  padding: 0.65rem 1.5rem;
+  background: var(--accent);
+  color: #1a1a2e;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: background 0.2s, opacity 0.2s;
+  white-space: nowrap;
+}
+
+.reference-submit:hover:not(:disabled) {
+  background: var(--accent-dark);
+}
+
+.reference-submit:disabled {
+  opacity: 0.6;
+}
+
+.reference-error {
+  margin-top: 0.75rem;
+  color: #ff7b7b;
+  font-size: 0.9rem;
+}
