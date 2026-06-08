@@ -8,3 +8,4 @@ dist/
 .env
 .env.local
 *.local
+apps/api/.env
