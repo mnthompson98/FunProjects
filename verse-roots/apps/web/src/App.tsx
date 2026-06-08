@@ -3,6 +3,7 @@ import { Header } from './components/Header';
 import { ReferenceInput } from './components/ReferenceInput';
 import { VerseDisplay } from './components/VerseDisplay';
 import { SidePanel } from './components/SidePanel';
+import { Library } from './components/Library';
 import { normalizeRef } from './normalizeRef';
 import { OriginalWord, VerseWithWords, StrongsEntry } from './types';
 import './App.css';
@@ -14,6 +15,7 @@ function App() {
   const [selectedWord, setSelectedWord] = useState<OriginalWord | null>(null);
   const [selectedStrongs, setSelectedStrongs] = useState<StrongsEntry | null>(null);
   const [strongsLoading, setStrongsLoading] = useState(false);
+  const [showLibrary, setShowLibrary] = useState(false);
 
   /**
    * Core verse-loading logic — shared by both the ReferenceInput and the
@@ -103,7 +105,7 @@ function App() {
 
   return (
     <div className="app">
-      <Header />
+      <Header onOpenLibrary={() => setShowLibrary(true)} />
       <main className="app__main">
         <div className="app__content">
           <ReferenceInput onSubmit={handleRefSubmit} loading={loading} error={error} />
@@ -126,6 +128,12 @@ function App() {
           )}
         </div>
       </main>
+      {showLibrary && (
+        <Library
+          onOpen={(ref) => { loadVerse(ref); setShowLibrary(false); }}
+          onClose={() => setShowLibrary(false)}
+        />
+      )}
       <footer className="app__footer">
         Lexicon and tagged-text data &copy;{' '}
         <a href="https://stepbible.org" target="_blank" rel="noopener noreferrer">

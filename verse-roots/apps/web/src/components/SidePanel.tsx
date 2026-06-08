@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { OriginalWord, StrongsEntry, ConcordanceResponse, ConcordanceEntry } from '../types';
 import { formatRef } from '../utils/formatRef';
+import { StudyTab } from './StudyTab';
 import './SidePanel.css';
 
 interface SidePanelProps {
@@ -59,9 +60,12 @@ export function SidePanel({ word, strongs, onClose, onNavigate }: SidePanelProps
           <ConcordanceTab word={word} strongs={strongs} onNavigate={onNavigate} />
         )}
         {activeTab === 'study' && (
-          <div className="placeholder-tab">
-            <p>Study notes — coming soon</p>
-          </div>
+          <StudyTab
+            verseRef={word.verseRef}
+            focusStrongs={word.strongs}
+            focusWord={word.originalText}
+            focusLemma={strongs?.lemma ?? null}
+          />
         )}
       </div>
     </aside>

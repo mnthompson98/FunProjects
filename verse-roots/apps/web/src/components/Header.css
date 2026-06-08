@@ -7,6 +7,14 @@
 .header-inner {
   max-width: 1100px;
   margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
 }
 
 .header-title {
@@ -21,4 +29,22 @@
   font-size: 0.85rem;
   color: var(--text-muted);
   margin-top: 0.15rem;
+}
+
+.header-library-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 0.45rem 1rem;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+
+.header-library-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: color-mix(in srgb, transparent 90%, var(--accent) 10%);
 }
