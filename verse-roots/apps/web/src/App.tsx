@@ -19,7 +19,7 @@ import { initialSync, maybeSyncStudy } from './study/sync';
 import type { Study } from './study/types';
 import './App.css';
 
-const FREE_STATUS: SubscriptionStatus = { plan: 'free', currentPeriodEnd: null, canSync: false };
+const FREE_STATUS: SubscriptionStatus = { plan: 'free', currentPeriodEnd: null, canSync: false }; // canSync false = not logged in
 
 function App() {
   const [verse, setVerse] = useState<VerseWithWords | null>(null);

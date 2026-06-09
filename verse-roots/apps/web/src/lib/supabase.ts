@@ -89,13 +89,13 @@ export async function getSubscriptionStatus(userId: string): Promise<Subscriptio
     .eq('user_id', userId)
     .maybeSingle();
 
-  if (error || !data) return FREE_STATUS;
+  if (error || !data) return { plan: 'free', currentPeriodEnd: null, canSync: true }; // beta: sync for all signed-in users
 
   const plan = (data as { status: SubscriptionStatus['plan']; current_period_end: string | null }).status;
   const periodEndRaw = (data as { status: SubscriptionStatus['plan']; current_period_end: string | null }).current_period_end;
   return {
     plan,
     currentPeriodEnd: periodEndRaw ? new Date(periodEndRaw) : null,
-    canSync: plan === 'active',
+    canSync: true, // beta: sync enabled for all signed-in users
   };
 }
