@@ -1,5 +1,5 @@
 .verse-display {
-  padding: 2rem;
+  padding: 2rem 2.5rem;
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
@@ -7,11 +7,12 @@
 
 .verse-ref {
   font-family: var(--font-serif);
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--accent);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--earth);
   margin-bottom: 1.25rem;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 /* Translation pill strip */
@@ -20,22 +21,22 @@
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
 }
 
 .translation-label {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 500;
-  color: var(--text-muted);
+  color: var(--text-subtle);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
 }
 
 .translation-pills {
   display: flex;
-  gap: 0.25rem;
+  gap: 2px;
   background: var(--surface2);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-xl);
   padding: 3px;
 }
@@ -45,27 +46,22 @@
   border: none;
   border-radius: 99px;
   color: var(--text-muted);
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  padding: 0.25rem 0.75rem;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  padding: 0.25rem 0.8rem;
   cursor: pointer;
   transition: color var(--transition), background var(--transition);
   white-space: nowrap;
 }
-.translation-pill:hover {
-  color: var(--text);
-  background: var(--surface3);
-}
+.translation-pill:hover { color: var(--text); background: var(--surface3); }
 .translation-pill--active {
   background: var(--accent);
-  color: #0d0d0f;
+  color: #fff;
+  font-weight: 600;
 }
-.translation-pill--active:hover {
-  background: var(--accent);
-  color: #0d0d0f;
-  opacity: 0.9;
-}
+.translation-pill--active:hover { background: var(--accent); opacity: 0.92; color: #fff; }
 
 .translation-external-links {
   display: flex;
@@ -74,11 +70,11 @@
 }
 
 .translation-ext-link {
-  font-size: 0.75rem;
+  font-size: 0.73rem;
   font-weight: 500;
   color: var(--text-muted);
   padding: 0.22rem 0.55rem;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
   transition: color var(--transition), border-color var(--transition);
 }
@@ -88,29 +84,31 @@
   opacity: 1;
 }
 
-/* Translation text blockquote */
+/* Scripture blockquote */
 .translation-text {
-  margin: 0 0 1.5rem 0;
-  padding: 1rem 1.25rem;
-  border-left: 2px solid var(--accent);
-  background: var(--surface2);
+  margin: 0 0 1.75rem 0;
+  padding: 1.1rem 1.4rem;
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
   border-radius: 0 var(--radius) var(--radius) 0;
   font-family: var(--font-serif);
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-style: italic;
   color: var(--text);
-  line-height: 1.75;
+  line-height: 1.85;
+  box-shadow: var(--shadow);
 }
 
 .translation-attribution {
-  margin-top: 0.6rem;
+  margin-top: 0.65rem;
   font-size: 0.72rem;
   font-style: normal;
   font-family: var(--font-sans);
-  color: var(--text-muted);
+  color: var(--text-subtle);
+  letter-spacing: 0.02em;
 }
 
-/* Word chips grid */
+/* Word chips */
 .verse-words {
   display: flex;
   flex-wrap: wrap;

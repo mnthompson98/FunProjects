@@ -2,14 +2,12 @@
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   padding: 0 2rem;
-  height: 58px;
+  height: 60px;
   display: flex;
   align-items: center;
   position: sticky;
   top: 0;
   z-index: 100;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 
 .header-inner {
@@ -25,22 +23,21 @@
 .header-left {
   display: flex;
   align-items: baseline;
-  gap: 0.75rem;
+  gap: 0.7rem;
 }
 
 .header-title {
   font-family: var(--font-serif);
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--earth);
   letter-spacing: 0.01em;
-  line-height: 1;
 }
 
 .header-tagline {
   font-size: 0.78rem;
   color: var(--text-muted);
-  letter-spacing: 0.01em;
+  font-weight: 300;
 }
 
 .header-actions {
@@ -53,21 +50,16 @@
   background: var(--accent);
   border: none;
   border-radius: var(--radius-sm);
-  color: #0d0d0f;
+  color: #fff;
   font-size: 0.82rem;
-  font-weight: 600;
-  padding: 0.4rem 0.9rem;
-  cursor: pointer;
-  transition: opacity var(--transition), transform var(--transition);
+  font-weight: 500;
+  padding: 0.42rem 0.9rem;
+  transition: background var(--transition), transform var(--transition);
   white-space: nowrap;
-  letter-spacing: 0.01em;
 }
 .header-signin-btn:hover {
-  opacity: 0.88;
+  background: var(--accent-dark);
   transform: translateY(-1px);
-}
-.header-signin-btn:active {
-  transform: translateY(0);
 }
 
 .header-library-btn {
@@ -76,14 +68,13 @@
   border-radius: var(--radius-sm);
   color: var(--text-muted);
   font-size: 0.82rem;
-  font-weight: 500;
-  padding: 0.4rem 0.9rem;
-  cursor: pointer;
+  font-weight: 400;
+  padding: 0.42rem 0.9rem;
   transition: color var(--transition), border-color var(--transition), background var(--transition);
   white-space: nowrap;
 }
 .header-library-btn:hover {
   color: var(--text);
-  border-color: var(--border-strong);
-  background: var(--surface2);
+  border-color: var(--accent-dim);
+  background: var(--accent-light);
 }

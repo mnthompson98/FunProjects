@@ -1,107 +1,46 @@
-.user-menu {
-  position: relative;
-}
+.user-menu { position: relative; }
 
 .user-menu__trigger {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: var(--surface2);
-  border: 1px solid var(--border);
+  display: flex; align-items: center; gap: 0.5rem;
+  background: var(--surface2); border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
-  color: var(--text-muted);
-  font-size: 0.82rem;
-  padding: 0.38rem 0.75rem;
-  cursor: pointer;
-  transition: color var(--transition), border-color var(--transition), background var(--transition);
-  max-width: 220px;
+  color: var(--text-muted); font-size: 0.82rem; font-weight: 400;
+  padding: 0.38rem 0.75rem; cursor: pointer; max-width: 220px;
+  transition: color var(--transition), background var(--transition);
 }
-.user-menu__trigger:hover {
-  color: var(--text);
-  border-color: var(--border-strong);
-  background: var(--surface3);
-}
+.user-menu__trigger:hover { color: var(--text); background: var(--surface3); }
 
 .user-menu__avatar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.55rem;
-  height: 1.55rem;
-  border-radius: 50%;
-  background: var(--accent);
-  color: #0d0d0f;
-  font-size: 0.72rem;
-  font-weight: 700;
-  flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 1.55rem; height: 1.55rem; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  font-size: 0.72rem; font-weight: 600; flex-shrink: 0;
 }
 
-.user-menu__email {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.user-menu__caret {
-  font-size: 0.6rem;
-  flex-shrink: 0;
-  color: var(--text-subtle);
-}
+.user-menu__email { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-menu__caret { font-size: 0.6rem; flex-shrink: 0; color: var(--text-subtle); }
 
 .user-menu__dropdown {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
+  position: absolute; top: calc(100% + 6px); right: 0;
   background: var(--surface);
   border: 1px solid var(--border-strong);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-lg);
-  min-width: 190px;
-  z-index: 100;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  border-radius: var(--radius); box-shadow: var(--shadow-lg);
+  min-width: 190px; z-index: 100; overflow: hidden;
+  display: flex; flex-direction: column;
   animation: dropdown-in 0.14s ease;
 }
+@keyframes dropdown-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 
-@keyframes dropdown-in {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.user-menu__plan-badge {
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--accent);
-  padding: 0.6rem 1rem 0.25rem;
-}
+.user-menu__plan-badge { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--accent); padding: 0.6rem 1rem 0.25rem; }
 
 .user-menu__item {
-  background: none;
-  border: none;
-  text-align: left;
-  padding: 0.55rem 1rem;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  cursor: pointer;
+  background: none; border: none; text-align: left;
+  padding: 0.55rem 1rem; font-size: 0.85rem; color: var(--text-muted);
+  font-family: var(--font-sans); cursor: pointer;
   transition: background var(--transition), color var(--transition);
 }
-.user-menu__item:hover {
-  background: var(--surface2);
-  color: var(--text);
-}
-.user-menu__item--danger {
-  color: var(--error);
-}
-.user-menu__item--danger:hover {
-  background: rgba(224, 92, 92, 0.08);
-  color: var(--error);
-}
+.user-menu__item:hover { background: var(--accent-light); color: var(--text); }
+.user-menu__item--danger { color: var(--error); }
+.user-menu__item--danger:hover { background: rgba(185,64,64,0.07); color: var(--error); }
 
-.user-menu__divider {
-  height: 1px;
-  background: var(--border);
-  margin: 0.2rem 0;
-}
+.user-menu__divider { height: 1px; background: var(--border); margin: 0.2rem 0; }
