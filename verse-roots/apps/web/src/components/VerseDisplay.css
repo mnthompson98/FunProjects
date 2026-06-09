@@ -1,14 +1,12 @@
-.verse-display {
-  /* padding and max-width handled by parent .app-main-col */
-}
+.verse-display { /* padding/max-width handled by parent */ }
 
 .verse-ref {
   font-family: var(--font-serif);
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--earth);
-  margin-bottom: 1.25rem;
-  letter-spacing: 0.03em;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--accent);
+  margin-bottom: 1.1rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
@@ -22,11 +20,11 @@
 }
 
 .translation-label {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 500;
   color: var(--text-subtle);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
 }
 
 .translation-pills {
@@ -44,10 +42,10 @@
   border-radius: 99px;
   color: var(--text-muted);
   font-family: var(--font-sans);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 500;
-  letter-spacing: 0.04em;
-  padding: 0.25rem 0.8rem;
+  letter-spacing: 0.06em;
+  padding: 0.22rem 0.8rem;
   cursor: pointer;
   transition: color var(--transition), background var(--transition);
   white-space: nowrap;
@@ -55,10 +53,10 @@
 .translation-pill:hover { color: var(--text); background: var(--surface3); }
 .translation-pill--active {
   background: var(--accent);
-  color: #fff;
+  color: #0F0D0B;
   font-weight: 600;
 }
-.translation-pill--active:hover { background: var(--accent); opacity: 0.92; color: #fff; }
+.translation-pill--active:hover { background: var(--accent); opacity: 0.9; color: #0F0D0B; }
 
 .translation-external-links {
   display: flex;
@@ -67,10 +65,10 @@
 }
 
 .translation-ext-link {
-  font-size: 0.73rem;
+  font-size: 0.7rem;
   font-weight: 500;
-  color: var(--text-muted);
-  padding: 0.22rem 0.55rem;
+  color: var(--text-subtle);
+  padding: 0.2rem 0.5rem;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
   transition: color var(--transition), border-color var(--transition);
@@ -84,25 +82,26 @@
 /* Scripture blockquote */
 .translation-text {
   margin: 0 0 1.75rem 0;
-  padding: 1.1rem 1.4rem;
-  border-left: 3px solid var(--accent);
+  padding: 1.4rem 1.75rem;
+  border-left: 2px solid var(--accent);
   background: var(--surface);
-  border-radius: 0 var(--radius) var(--radius) 0;
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
   font-family: var(--font-serif);
-  font-size: 1.05rem;
+  font-size: 1.25rem;
+  font-weight: 300;
   font-style: italic;
   color: var(--text);
-  line-height: 1.85;
+  line-height: 1.9;
   box-shadow: var(--shadow);
 }
 
 .translation-attribution {
-  margin-top: 0.65rem;
-  font-size: 0.72rem;
+  margin-top: 0.75rem;
+  font-size: 0.68rem;
   font-style: normal;
   font-family: var(--font-sans);
   color: var(--text-subtle);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
 }
 
 /* Word chips */
