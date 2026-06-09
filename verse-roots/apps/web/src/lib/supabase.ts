@@ -23,7 +23,10 @@ export async function sendMagicLink(email: string): Promise<{ error: string | nu
   if (!isSupabaseConfigured) {
     return { error: 'Authentication is not configured yet.' };
   }
-  const { error } = await supabase.auth.signInWithOtp({ email });
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: window.location.origin },
+  });
   if (error) return { error: error.message };
   return { error: null };
 }
@@ -33,11 +36,16 @@ export async function signOut(): Promise<void> {
   await supabase.auth.signOut();
 }
 
-/** Get the currently authenticated user, or null if not signed in. */
+/**
+ * Get the currently authenticated user, or null if not signed in.
+ * Uses getSession (localStorage, no network) for fast session restoration on
+ * page reload. The onAuthStateChange listener will subsequently validate the
+ * token server-side when the INITIAL_SESSION event fires.
+ */
 export async function getCurrentUser(): Promise<User | null> {
   if (!isSupabaseConfigured) return null;
-  const { data } = await supabase.auth.getUser();
-  return data.user ?? null;
+  const { data } = await supabase.auth.getSession();
+  return data.session?.user ?? null;
 }
 
 /**
@@ -50,8 +58,6 @@ export function onAuthStateChange(callback: (user: User | null) => void): () => 
     callback(null);
     return () => {};
   }
-
-  supabase.auth.getUser().then(({ data }) => callback(data.user ?? null));
 
   const {
     data: { subscription },

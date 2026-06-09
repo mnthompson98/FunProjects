@@ -11,7 +11,6 @@ import { normalizeRef } from './normalizeRef';
 import type { OriginalWord, VerseWithWords, StrongsEntry } from './types';
 import { getVerse, getStrongs } from '@verse-roots/bible-client';
 import {
-  getCurrentUser,
   onAuthStateChange,
   getSubscriptionStatus,
 } from './lib/supabase';
@@ -44,21 +43,12 @@ function App() {
     return status;
   }, []);
 
-  // On mount: restore session and subscribe to auth changes
+  // On mount: restore session via onAuthStateChange (fires immediately with
+  // INITIAL_SESSION for existing sessions, and SIGNED_IN when the magic-link
+  // hash is processed on redirect-back). No separate getCurrentUser() call is
+  // needed — the listener covers both the initial session and all subsequent
+  // auth events.
   useEffect(() => {
-    getCurrentUser().then((u) => {
-      if (u) {
-        setUser(u);
-        fetchSubscription(u).then((status) => {
-          if (status.canSync) {
-            initialSync(u.id).catch((err) =>
-              console.warn('[sync] initialSync error:', err),
-            );
-          }
-        });
-      }
-    });
-
     const unsubscribe = onAuthStateChange(async (u) => {
       setUser(u);
       if (u) {
