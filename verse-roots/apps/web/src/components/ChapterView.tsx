@@ -5,7 +5,6 @@ import { fetchNivVerse, isApiBibleConfigured } from '../utils/apiBible';
 import { WordChip } from './WordChip';
 import { SidePanel } from './SidePanel';
 import { formatRef } from '../utils/formatRef';
-import type { User, SubscriptionStatus } from '../lib/supabase';
 import type { Study } from '../study/types';
 import './ChapterView.css';
 
@@ -41,10 +40,6 @@ export interface ChapterViewProps {
   onPanelClose: () => void;
   onNavigate: (osisRef: string, strongs: string) => void;
   onStudySaved: (study: Study) => void;
-  user: User | null;
-  subscriptionStatus: SubscriptionStatus;
-  onOpenAuth: () => void;
-  onOpenAccount: () => void;
 }
 
 export function ChapterView({
@@ -61,10 +56,6 @@ export function ChapterView({
   onPanelClose,
   onNavigate,
   onStudySaved,
-  user,
-  subscriptionStatus,
-  onOpenAuth,
-  onOpenAccount,
 }: ChapterViewProps) {
   const chapterDisplay = formatChapterRef(chapterRef);
 
@@ -111,10 +102,6 @@ export function ChapterView({
             onPanelClose={onPanelClose}
             onNavigate={onNavigate}
             onStudySaved={onStudySaved}
-            user={user}
-            subscriptionStatus={subscriptionStatus}
-            onOpenAuth={onOpenAuth}
-            onOpenAccount={onOpenAccount}
           />
         ))}
       </div>
@@ -135,10 +122,6 @@ interface ChapterVerseProps {
   onPanelClose: () => void;
   onNavigate: (osisRef: string, strongs: string) => void;
   onStudySaved: (study: Study) => void;
-  user: User | null;
-  subscriptionStatus: SubscriptionStatus;
-  onOpenAuth: () => void;
-  onOpenAccount: () => void;
 }
 
 function ChapterVerse({
@@ -153,10 +136,6 @@ function ChapterVerse({
   onPanelClose,
   onNavigate,
   onStudySaved,
-  user,
-  subscriptionStatus,
-  onOpenAuth,
-  onOpenAccount,
 }: ChapterVerseProps) {
   // Show inline panel when this verse is expanded and the selected word belongs to it
   const showInlinePanel =
@@ -228,10 +207,6 @@ function ChapterVerse({
               onClose={onPanelClose}
               onNavigate={onNavigate}
               onStudySaved={onStudySaved}
-              user={user}
-              subscriptionStatus={subscriptionStatus}
-              onOpenAuth={onOpenAuth}
-              onOpenAccount={onOpenAccount}
             />
           )}
         </div>

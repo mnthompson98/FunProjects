@@ -3,7 +3,6 @@ import type { Study, StudySection } from '../study/types';
 import { STUDY_TEMPLATE } from '../study/types';
 import { saveStudy, getStudiesByVerse, deleteStudy } from '../study/db';
 import { formatRef } from '../utils/formatRef';
-import type { User, SubscriptionStatus } from '../lib/supabase';
 import './StudyTab.css';
 
 export interface StudyTabProps {
@@ -12,10 +11,6 @@ export interface StudyTabProps {
   focusWord: string | null;
   focusLemma: string | null;
   onStudySaved?: (study: Study) => void;
-  user?: User | null;
-  subscriptionStatus?: SubscriptionStatus;
-  onOpenAuth?: () => void;
-  onOpenAccount?: () => void;
 }
 
 function createBlankStudy(
@@ -43,10 +38,6 @@ export function StudyTab({
   focusWord,
   focusLemma,
   onStudySaved,
-  user,
-  subscriptionStatus,
-  onOpenAuth,
-  onOpenAccount,
 }: StudyTabProps) {
   const [study, setStudy] = useState<Study>(() =>
     createBlankStudy(verseRef, focusStrongs, focusWord),
@@ -198,12 +189,6 @@ export function StudyTab({
             {saveStatus === 'saved' && 'Saved ✓'}
             {saveStatus === 'idle' && (hasPersisted.current ? 'Autosaved ✓' : ' ')}
           </span>
-          <SyncIndicator
-            user={user ?? null}
-            subscriptionStatus={subscriptionStatus}
-            onOpenAuth={onOpenAuth}
-            onOpenAccount={onOpenAccount}
-          />
         </div>
         <div className="study-tab__footer-actions">
           <button
@@ -283,39 +268,3 @@ function AccordionSection({
   );
 }
 
-// ---------------------------------------------------------------------------
-// SyncIndicator
-// ---------------------------------------------------------------------------
-
-interface SyncIndicatorProps {
-  user: User | null;
-  subscriptionStatus: SubscriptionStatus | undefined;
-  onOpenAuth: (() => void) | undefined;
-  onOpenAccount: (() => void) | undefined;
-}
-
-function SyncIndicator({ user, subscriptionStatus, onOpenAuth, onOpenAccount }: SyncIndicatorProps) {
-  if (!user) {
-    return (
-      <button
-        className="study-tab__sync-hint"
-        onClick={onOpenAuth}
-        title="Sign in to sync across devices"
-      >
-        ☁ Sign in to sync
-      </button>
-    );
-  }
-  if (!subscriptionStatus?.canSync) {
-    return (
-      <button
-        className="study-tab__sync-hint"
-        onClick={onOpenAccount}
-        title="Upgrade to Pro to sync across devices"
-      >
-        ☁ Upgrade to sync
-      </button>
-    );
-  }
-  return <span className="study-tab__sync-active">☁ Synced</span>;
-}

@@ -3,7 +3,6 @@ import type { OriginalWord, StrongsEntry, ConcordanceResponse, ConcordanceEntry 
 import { getConcordance } from '@verse-roots/bible-client';
 import { formatRef } from '../utils/formatRef';
 import { StudyTab } from './StudyTab';
-import type { User, SubscriptionStatus } from '../lib/supabase';
 import type { Study } from '../study/types';
 import './SidePanel.css';
 
@@ -14,10 +13,6 @@ interface SidePanelProps {
   /** Called when the user clicks a concordance entry to navigate to that verse. */
   onNavigate: (osisRef: string, strongs: string) => void;
   onStudySaved: (study: Study) => void;
-  user: User | null;
-  subscriptionStatus: SubscriptionStatus;
-  onOpenAuth: () => void;
-  onOpenAccount: () => void;
   /** When true, renders inline (no sticky, full-width, border-top instead of border-left) */
   inline?: boolean;
 }
@@ -30,10 +25,6 @@ export function SidePanel({
   onClose,
   onNavigate,
   onStudySaved,
-  user,
-  subscriptionStatus,
-  onOpenAuth,
-  onOpenAccount,
   inline = false,
 }: SidePanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>('lexicon');
@@ -87,10 +78,6 @@ export function SidePanel({
             focusWord={word.originalText}
             focusLemma={strongs?.lemma ?? null}
             onStudySaved={onStudySaved}
-            user={user}
-            subscriptionStatus={subscriptionStatus}
-            onOpenAuth={onOpenAuth}
-            onOpenAccount={onOpenAccount}
           />
         )}
       </div>

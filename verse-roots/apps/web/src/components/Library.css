@@ -15,7 +15,20 @@
 }
 @keyframes lib-slide-in { from { transform: translateX(30px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-.library-header { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); }
+.library-header { display: flex; align-items: center; gap: 0.75rem; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+
+.library-header-actions { display: flex; gap: 0.4rem; margin-left: auto; }
+
+.library-action-btn {
+  background: none; border: 1px solid var(--border-strong);
+  color: var(--text-muted); font-size: 0.78rem; font-weight: 500; cursor: pointer;
+  padding: 0.3rem 0.65rem; border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  transition: color var(--transition), background var(--transition);
+}
+.library-action-btn:hover { color: var(--accent); border-color: var(--accent-dim); background: var(--accent-light); }
+
+.library-import-error { font-size: 0.8rem; color: var(--error); padding: 0.5rem 1.5rem 0; }
 
 .library-back {
   background: none; border: 1px solid var(--border-strong);

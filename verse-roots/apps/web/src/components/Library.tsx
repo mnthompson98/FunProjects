@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 
 const ALL_BOOKS = [
   'Genesis','Exodus','Leviticus','Numbers','Deuteronomy','Joshua','Judges','Ruth',
@@ -14,7 +14,7 @@ const ALL_BOOKS = [
   '1 John','2 John','3 John','Jude','Revelation',
 ];
 import type { Study } from '../study/types';
-import { getAllStudies, deleteStudy } from '../study/db';
+import { getAllStudies, deleteStudy, saveStudy } from '../study/db';
 import { formatRef } from '../utils/formatRef';
 import './Library.css';
 
@@ -50,11 +50,41 @@ export function Library({ onOpen, onClose }: LibraryProps) {
   const [search, setSearch] = useState('');
   const [bookFilter, setBookFilter] = useState('');
   const [wordsFilter, setWordsFilter] = useState('');
+  const [importError, setImportError] = useState('');
+  const importRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     getAllStudies().then(setStudies);
   }, []);
 
+  const handleExport = () => {
+    const json = JSON.stringify(studies, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `verse-roots-library-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImportError('');
+    const text = await file.text();
+    try {
+      const imported = JSON.parse(text) as Study[];
+      if (!Array.isArray(imported)) throw new Error('Not an array');
+      await Promise.all(imported.map((s) => saveStudy(s)));
+      const all = await getAllStudies();
+      setStudies(all);
+    } catch {
+      setImportError("Could not read file — make sure it's a Verse Roots library export.");
+    }
+    // reset so the same file can be re-imported
+    if (importRef.current) importRef.current.value = '';
+  };
 
   const words = useMemo(() => {
     const set = new Set<string>();
@@ -98,7 +128,23 @@ export function Library({ onOpen, onClose }: LibraryProps) {
             ← Back
           </button>
           <h2 className="library-title">My Study Library</h2>
+          <div className="library-header-actions">
+            <button className="library-action-btn" onClick={handleExport} title="Export library as JSON">
+              Export
+            </button>
+            <button className="library-action-btn" onClick={() => importRef.current?.click()} title="Import library from JSON">
+              Import
+            </button>
+            <input
+              ref={importRef}
+              type="file"
+              accept=".json,application/json"
+              style={{ display: 'none' }}
+              onChange={handleImport}
+            />
+          </div>
         </div>
+        {importError && <p className="library-import-error">{importError}</p>}
 
         <div className="library-filters">
           <input
