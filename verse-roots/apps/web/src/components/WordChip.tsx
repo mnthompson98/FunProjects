@@ -1,4 +1,4 @@
-import { OriginalWord } from '../types';
+import type { OriginalWord } from '../types';
 import './WordChip.css';
 
 interface WordChipProps {

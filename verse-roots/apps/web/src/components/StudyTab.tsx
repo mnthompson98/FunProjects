@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Study, StudySection, STUDY_TEMPLATE } from '../study/types';
+import type { Study, StudySection } from '../study/types';
+import { STUDY_TEMPLATE } from '../study/types';
 import { saveStudy, getStudiesByVerse, deleteStudy } from '../study/db';
 import { formatRef } from '../utils/formatRef';
 import type { User, SubscriptionStatus } from '../lib/supabase';

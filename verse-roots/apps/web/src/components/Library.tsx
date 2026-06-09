@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Study } from '../study/types';
+import type { Study } from '../study/types';
 import { getAllStudies, deleteStudy } from '../study/db';
 import { formatRef } from '../utils/formatRef';
 import './Library.css';
