@@ -1,63 +1,66 @@
 .reference-input-container {
-  padding: 1.5rem;
-  max-width: 1100px;
+  padding: 1.5rem 2rem 1rem;
+  max-width: 1200px;
   margin: 0 auto;
   width: 100%;
 }
 
 .reference-form {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.6rem;
   align-items: stretch;
+  max-width: 520px;
 }
 
 .reference-input {
   flex: 1;
-  padding: 0.65rem 1rem;
-  background: var(--surface);
+  padding: 0.6rem 1rem;
+  background: var(--surface2);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius);
   color: var(--text);
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-family: inherit;
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color var(--transition), background var(--transition), box-shadow var(--transition);
 }
-
 .reference-input:focus {
-  border-color: var(--accent);
+  border-color: var(--accent-dim);
+  background: var(--surface3);
+  box-shadow: 0 0 0 3px var(--accent-glow);
 }
-
 .reference-input::placeholder {
-  color: var(--text-muted);
+  color: var(--text-subtle);
 }
-
 .reference-input:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
 }
 
 .reference-submit {
-  padding: 0.65rem 1.5rem;
+  padding: 0.6rem 1.25rem;
   background: var(--accent);
-  color: #1a1a2e;
+  color: #0d0d0f;
   border: none;
-  border-radius: 6px;
-  font-size: 1rem;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
   font-weight: 600;
-  transition: background 0.2s, opacity 0.2s;
+  letter-spacing: 0.01em;
+  transition: opacity var(--transition), transform var(--transition);
   white-space: nowrap;
 }
-
 .reference-submit:hover:not(:disabled) {
-  background: var(--accent-dark);
+  opacity: 0.88;
+  transform: translateY(-1px);
 }
-
+.reference-submit:active:not(:disabled) {
+  transform: translateY(0);
+}
 .reference-submit:disabled {
-  opacity: 0.6;
+  opacity: 0.45;
 }
 
 .reference-error {
-  margin-top: 0.75rem;
-  color: #ff7b7b;
-  font-size: 0.9rem;
+  margin-top: 0.6rem;
+  color: var(--error);
+  font-size: 0.85rem;
 }

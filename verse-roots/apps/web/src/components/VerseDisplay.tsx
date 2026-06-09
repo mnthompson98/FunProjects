@@ -82,18 +82,25 @@ export function VerseDisplay({
 
       <div className="translation-bar">
         <span className="translation-label">Translation:</span>
-        <select
-          className="translation-select"
-          value={translation}
-          onChange={(e) => onTranslationChange(e.target.value)}
-        >
+        <div className="translation-pills" role="group" aria-label="Translation">
           {SUPABASE_TRANSLATIONS.map((t) => (
-            <option key={t} value={t}>{t}</option>
+            <button
+              key={t}
+              className={`translation-pill${translation === t ? ' translation-pill--active' : ''}`}
+              onClick={() => onTranslationChange(t)}
+            >
+              {t}
+            </button>
           ))}
           {NIV_AVAILABLE && (
-            <option value="NIV">NIV</option>
+            <button
+              className={`translation-pill${translation === 'NIV' ? ' translation-pill--active' : ''}`}
+              onClick={() => onTranslationChange('NIV')}
+            >
+              NIV
+            </button>
           )}
-        </select>
+        </div>
 
         <span className="translation-external-links">
           {(['ESV', 'NET'] as const).map((site) => (

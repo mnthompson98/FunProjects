@@ -4,25 +4,27 @@
   display: flex;
   flex-direction: column;
   width: 360px;
-  min-width: 280px;
+  min-width: 300px;
   max-width: 400px;
   overflow: hidden;
   flex-shrink: 0;
 }
 
+/* Header */
 .side-panel__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.25rem;
+  padding: 1.1rem 1.25rem 0.9rem;
   border-bottom: 1px solid var(--border);
   gap: 0.75rem;
+  background: var(--surface);
 }
 
 .side-panel__word-info {
   display: flex;
   align-items: baseline;
-  gap: 0.6rem;
+  gap: 0.65rem;
   min-width: 0;
   flex: 1;
 }
@@ -35,86 +37,95 @@
 }
 
 .side-panel__strongs {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
+  letter-spacing: 0.02em;
   white-space: nowrap;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  padding: 0.1rem 0.55rem;
 }
 
 .side-panel__close {
   background: none;
-  border: none;
+  border: 1px solid transparent;
   color: var(--text-muted);
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   line-height: 1;
-  padding: 0.25rem 0.4rem;
-  border-radius: 4px;
-  transition: color 0.15s, background 0.15s;
+  padding: 0.3rem 0.45rem;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition), background var(--transition);
   flex-shrink: 0;
 }
-
 .side-panel__close:hover {
   color: var(--text);
-  background: var(--border);
+  background: var(--surface2);
+  border-color: var(--border);
 }
 
+/* Tabs */
 .side-panel__tabs {
   display: flex;
   border-bottom: 1px solid var(--border);
+  padding: 0 0.25rem;
 }
 
 .tab-btn {
   flex: 1;
-  padding: 0.6rem 0.5rem;
+  padding: 0.65rem 0.25rem;
   background: none;
   border: none;
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  font-weight: 500;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
-  transition: color 0.15s, border-color 0.15s;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  transition: color var(--transition), border-color var(--transition);
 }
-
 .tab-btn:hover {
   color: var(--text);
 }
-
 .tab-btn--active {
   color: var(--accent);
   border-bottom-color: var(--accent);
 }
 
+/* Body */
 .side-panel__body {
   flex: 1;
   overflow-y: auto;
-  padding: 1rem 1.25rem;
+  padding: 1.25rem;
 }
 
 /* Lexicon tab */
 .lexicon-tab {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.1rem;
 }
 
 .lexicon-no-entry {
   color: var(--text-muted);
   font-style: italic;
+  font-size: 0.88rem;
 }
 
 .lexicon-fields {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 0.3rem 0.75rem;
+  gap: 0.35rem 0.9rem;
   align-items: baseline;
 }
 
 .lexicon-fields dt {
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.7rem;
+  font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.07em;
   white-space: nowrap;
 }
 
@@ -125,35 +136,39 @@
 
 .lexicon-lemma {
   font-family: var(--font-serif);
-  font-size: 1.1rem !important;
+  font-size: 1.15rem !important;
+  color: var(--accent) !important;
 }
 
 .lexicon-language {
   font-style: italic;
+  color: var(--text-muted) !important;
+  font-size: 0.82rem !important;
 }
 
 .lexicon-shortdef {
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--text) !important;
 }
 
 .lexicon-fulldef {
   border-top: 1px solid var(--border);
-  padding-top: 0.75rem;
+  padding-top: 1rem;
 }
 
 .lexicon-fulldef h4 {
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.7rem;
+  font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.5rem;
+  letter-spacing: 0.07em;
+  margin-bottom: 0.6rem;
 }
 
 .lexicon-fulldef__content {
-  font-size: 0.88rem;
+  font-size: 0.875rem;
   color: var(--text);
-  line-height: 1.6;
+  line-height: 1.65;
 }
 
 .lexicon-fulldef__content i {
@@ -161,11 +176,12 @@
   font-style: italic;
 }
 
-/* Placeholder tabs */
+/* Placeholder */
 .placeholder-tab {
   color: var(--text-muted);
   font-style: italic;
-  padding: 1rem 0;
+  font-size: 0.88rem;
+  padding: 0.5rem 0;
 }
 
 /* Concordance tab */
@@ -180,21 +196,22 @@
 .concordance-error {
   color: var(--text-muted);
   font-style: italic;
+  font-size: 0.88rem;
   padding: 0.5rem 0;
 }
 
 .concordance-error {
-  color: #e07070;
+  color: var(--error);
 }
 
 .concordance-spinner {
-  width: 28px;
-  height: 28px;
-  border: 3px solid var(--border);
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--surface3);
   border-top-color: var(--accent);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
-  margin: 1.5rem auto;
+  margin: 2rem auto;
 }
 
 @keyframes spin {
@@ -202,70 +219,72 @@
 }
 
 .concordance-header {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
-  padding-bottom: 0.5rem;
+  padding-bottom: 0.6rem;
   border-bottom: 1px solid var(--border);
   line-height: 1.4;
 }
 
 .concordance-header__lemma {
   font-family: var(--font-serif);
-  color: var(--text);
+  color: var(--accent);
   font-size: 1rem;
 }
 
 .concordance-header__strongs {
   color: var(--text-muted);
-  font-size: 0.78rem;
+  font-size: 0.75rem;
 }
 
 .concordance-list {
   list-style: none;
-  margin: 0;
-  padding: 0;
   overflow-y: auto;
   flex: 1;
-  /* Give the list its own scroll region */
-  max-height: calc(100vh - 260px);
+  max-height: calc(100vh - 280px);
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .concordance-item {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
-  padding: 0.55rem 0.25rem;
-  border-bottom: 1px solid var(--border);
+  padding: 0.6rem 0.65rem;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  border-radius: 4px;
-  transition: background 0.12s;
+  border: 1px solid transparent;
+  transition: background var(--transition), border-color var(--transition);
   outline: none;
 }
-
 .concordance-item:hover,
 .concordance-item:focus {
-  background: color-mix(in srgb, var(--surface) 70%, var(--accent) 30%);
+  background: var(--surface2);
+  border-color: var(--border);
 }
-
 .concordance-item:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--accent-dim);
   outline-offset: 1px;
 }
 
 .concordance-item__ref {
   font-weight: 700;
-  color: #e8c96a;
-  font-size: 0.88rem;
+  color: var(--accent);
+  font-size: 0.82rem;
+  letter-spacing: 0.01em;
 }
 
 .concordance-item__words {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .concordance-item__word {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
 }
 
 .concordance-item__original {
@@ -278,7 +297,7 @@
   color: var(--text-muted);
 }
 
-/* Mobile: side panel goes below verse */
+/* Mobile */
 @media (max-width: 768px) {
   .side-panel {
     width: 100%;

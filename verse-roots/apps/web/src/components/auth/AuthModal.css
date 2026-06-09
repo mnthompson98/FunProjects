@@ -1,55 +1,71 @@
 .auth-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 200;
   padding: 1rem;
+  animation: overlay-in 0.2s ease;
+}
+
+@keyframes overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 .auth-modal {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-xl);
   padding: 2rem;
   width: 100%;
   max-width: 420px;
   position: relative;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-lg);
+  animation: modal-in 0.2s ease;
+}
+
+@keyframes modal-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .auth-modal__close {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
+  top: 0.9rem;
+  right: 0.9rem;
   background: none;
-  border: none;
+  border: 1px solid transparent;
   color: var(--text-muted);
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   line-height: 1;
   cursor: pointer;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  transition: color 0.15s, background 0.15s;
+  padding: 0.3rem 0.45rem;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition), background var(--transition);
 }
 .auth-modal__close:hover {
   color: var(--text);
-  background: color-mix(in srgb, transparent 85%, var(--text) 15%);
+  background: var(--surface2);
+  border-color: var(--border);
 }
 
 .auth-modal__title {
   font-family: var(--font-serif);
-  font-size: 1.4rem;
+  font-size: 1.35rem;
   color: var(--accent);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
 }
 
 .auth-modal__subtitle {
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   color: var(--text-muted);
   margin-bottom: 1.5rem;
+  line-height: 1.5;
 }
 
 .auth-modal__form {
@@ -59,71 +75,79 @@
 }
 
 .auth-modal__label {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
   color: var(--text-muted);
-  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .auth-modal__input {
-  background: var(--bg);
+  background: var(--surface2);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius);
   color: var(--text);
-  font-size: 1rem;
-  padding: 0.6rem 0.85rem;
+  font-size: 0.95rem;
+  padding: 0.65rem 0.9rem;
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  font-family: inherit;
+  width: 100%;
 }
 .auth-modal__input:focus {
-  border-color: var(--accent);
+  border-color: var(--accent-dim);
+  box-shadow: 0 0 0 3px var(--accent-glow);
 }
 .auth-modal__input:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 .auth-modal__error {
-  font-size: 0.85rem;
-  color: #e57373;
-  margin: 0;
+  font-size: 0.82rem;
+  color: var(--error);
 }
 
 .auth-modal__btn {
   padding: 0.65rem 1.25rem;
-  border-radius: 6px;
+  border-radius: var(--radius);
   border: none;
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: 0.88rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.15s, background 0.15s;
+  transition: opacity var(--transition), transform var(--transition);
+  letter-spacing: 0.01em;
 }
 .auth-modal__btn:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
 }
 .auth-modal__btn--primary {
   background: var(--accent);
-  color: #fff;
+  color: #0d0d0f;
   margin-top: 0.25rem;
 }
 .auth-modal__btn--primary:hover:not(:disabled) {
   opacity: 0.88;
+  transform: translateY(-1px);
 }
 .auth-modal__btn--secondary {
-  background: none;
+  background: var(--surface2);
   border: 1px solid var(--border);
   color: var(--text-muted);
 }
-.auth-modal__btn--secondary:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+.auth-modal__btn--secondary:hover:not(:disabled) {
+  background: var(--surface3);
+  color: var(--text);
+  border-color: var(--border-strong);
 }
 
 .auth-modal__fine-print {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   margin-top: 1rem;
-  line-height: 1.4;
+  line-height: 1.5;
+  text-align: center;
 }
 
 /* Sent state */
@@ -133,6 +157,7 @@
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
+  padding: 0.5rem 0;
 }
 .auth-modal__sent-icon {
   font-size: 2.5rem;
@@ -140,12 +165,12 @@
 }
 .auth-modal__sent h2 {
   font-family: var(--font-serif);
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   color: var(--text);
 }
 .auth-modal__sent p {
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: var(--text-muted);
   max-width: 300px;
-  line-height: 1.5;
+  line-height: 1.6;
 }

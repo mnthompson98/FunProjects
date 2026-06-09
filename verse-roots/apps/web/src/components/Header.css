@@ -1,34 +1,46 @@
 .header {
-  background-color: var(--surface);
+  background: var(--surface);
   border-bottom: 1px solid var(--border);
-  padding: 1.25rem 1.5rem;
+  padding: 0 2rem;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .header-inner {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
 }
 
 .header-left {
   display: flex;
-  flex-direction: column;
+  align-items: baseline;
+  gap: 0.75rem;
 }
 
 .header-title {
   font-family: var(--font-serif);
-  font-size: 1.75rem;
-  font-weight: 700;
+  font-size: 1.3rem;
+  font-weight: 600;
   color: var(--accent);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
+  line-height: 1;
 }
 
 .header-tagline {
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
-  margin-top: 0.15rem;
+  letter-spacing: 0.01em;
 }
 
 .header-actions {
@@ -40,32 +52,38 @@
 .header-signin-btn {
   background: var(--accent);
   border: none;
-  border-radius: 6px;
-  color: #fff;
-  font-size: 0.85rem;
-  padding: 0.45rem 1rem;
+  border-radius: var(--radius-sm);
+  color: #0d0d0f;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.4rem 0.9rem;
   cursor: pointer;
-  transition: opacity 0.15s;
+  transition: opacity var(--transition), transform var(--transition);
   white-space: nowrap;
+  letter-spacing: 0.01em;
 }
 .header-signin-btn:hover {
   opacity: 0.88;
+  transform: translateY(-1px);
+}
+.header-signin-btn:active {
+  transform: translateY(0);
 }
 
 .header-library-btn {
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
   color: var(--text-muted);
-  font-size: 0.85rem;
-  padding: 0.45rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 0.4rem 0.9rem;
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
   white-space: nowrap;
 }
-
 .header-library-btn:hover {
-  color: var(--accent);
-  border-color: var(--accent);
-  background: color-mix(in srgb, transparent 90%, var(--accent) 10%);
+  color: var(--text);
+  border-color: var(--border-strong);
+  background: var(--surface2);
 }
