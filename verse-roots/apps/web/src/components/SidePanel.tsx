@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { OriginalWord, StrongsEntry, ConcordanceResponse, ConcordanceEntry } from '../types';
+import { getConcordance } from '@verse-roots/bible-client';
 import { formatRef } from '../utils/formatRef';
 import { StudyTab } from './StudyTab';
 import type { User, SubscriptionStatus } from '../lib/supabase';
@@ -177,12 +178,8 @@ function ConcordanceTab({ word, strongs, onNavigate }: ConcordanceTabProps) {
     setFetchError(null);
     setData(null);
 
-    fetch(`/api/concordance/${encodeURIComponent(id)}`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json() as Promise<ConcordanceResponse>;
-      })
-      .then((json) => {
+    getConcordance(id)
+      .then((json: ConcordanceResponse) => {
         if (cancelled) return;
         cache.current.set(id, json);
         setData(json);

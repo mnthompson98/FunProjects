@@ -5,6 +5,7 @@
   "workspaces": [
     "packages/db",
     "packages/supabase-client",
+    "packages/bible-client",
     "apps/web",
     "apps/api",
     "data/ingestion"
@@ -14,7 +15,8 @@
     "ingest:kjv": "npx tsx data/ingestion/src/parse-kjv.ts",
     "verify": "npm run verify --workspace=data/ingestion",
     "api": "npm run dev --workspace=apps/api",
-    "dev": "concurrently \"npm run api\" \"npm run dev --workspace=apps/web\""
+    "dev": "concurrently \"npm run api\" \"npm run dev --workspace=apps/web\"",
+    "migrate:supabase": "npx tsx data/ingestion/src/migrate-to-supabase.ts"
   },
   "devDependencies": {
     "concurrently": "^9.0.0"

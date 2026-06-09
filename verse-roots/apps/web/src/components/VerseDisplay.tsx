@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { OriginalWord, VerseWithWords } from '../types';
+import { getVerseTranslation } from '@verse-roots/bible-client';
 import { WordChip } from './WordChip';
 import { formatRef } from '../utils';
 import './VerseDisplay.css';
@@ -48,8 +49,7 @@ export function VerseDisplay({
   useEffect(() => {
     setTranslationText(null);
     setTransLoading(true);
-    fetch(`/api/verse/${encodeURIComponent(verse.ref)}/translation/${encodeURIComponent(translation)}`)
-      .then((r) => (r.ok ? r.json() : null))
+    getVerseTranslation(verse.ref, translation)
       .then((data) => setTranslationText(data?.text ?? null))
       .catch(() => setTranslationText(null))
       .finally(() => setTransLoading(false));
