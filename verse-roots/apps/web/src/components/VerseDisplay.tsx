@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { OriginalWord, VerseWithWords } from '../types';
 import { getVerseTranslation } from '@verse-roots/bible-client';
+import { fetchNivVerse, isApiBibleConfigured } from '../utils/apiBible';
 import { WordChip } from './WordChip';
 import { formatRef } from '../utils';
 import './VerseDisplay.css';
@@ -13,27 +14,33 @@ interface VerseDisplayProps {
   onTranslationChange: (t: string) => void;
 }
 
-const AVAILABLE_TRANSLATIONS = ['KJV'];
-const FUTURE_TRANSLATIONS = ['ASV', 'WEB'];
+// Translations stored in Supabase (always available)
+const SUPABASE_TRANSLATIONS = ['KJV', 'ASV', 'WEB'];
 
-function buildExternalUrl(site: 'ESV' | 'NIV' | 'NET', ref: string): string {
-  const display = formatRef(ref); // e.g. "Lamentations 3:22"
-  const [bookName, chapterVerse] = display.split(' ').reduce<[string, string]>(
-    (acc, part) => {
-      if (/^\d+:\d+$/.test(part)) return [acc[0], part];
-      return [acc[0] ? acc[0] + ' ' + part : part, acc[1]];
-    },
-    ['', '']
-  );
-  const encoded = encodeURIComponent(`${bookName} ${chapterVerse}`);
+// NIV is fetched from API.Bible when an API key is configured
+const NIV_AVAILABLE = isApiBibleConfigured;
+
+const TRANSLATION_ATTRIBUTION: Record<string, string> = {
+  KJV: 'KJV (public domain)',
+  ASV: 'ASV (public domain)',
+  WEB: 'WEB (public domain)',
+  NIV: 'NIV® Copyright © 1973, 1978, 1984, 2011 by Biblica, Inc.®',
+};
+
+function buildExternalUrl(site: 'ESV' | 'NET', ref: string): string {
+  const display = formatRef(ref);
+  const encoded = encodeURIComponent(display);
   switch (site) {
     case 'ESV':
       return `https://www.esv.org/${encoded}/`;
-    case 'NIV':
-      return `https://www.biblegateway.com/passage/?search=${encoded}&version=NIV`;
     case 'NET':
       return `https://netbible.org/bible/${encoded}`;
   }
+}
+
+function buildNivUrl(ref: string): string {
+  const display = formatRef(ref);
+  return `https://www.biblegateway.com/passage/?search=${encodeURIComponent(display)}&version=NIV`;
 }
 
 export function VerseDisplay({
@@ -49,10 +56,24 @@ export function VerseDisplay({
   useEffect(() => {
     setTranslationText(null);
     setTransLoading(true);
-    getVerseTranslation(verse.ref, translation)
-      .then((data) => setTranslationText(data?.text ?? null))
-      .catch(() => setTranslationText(null))
-      .finally(() => setTransLoading(false));
+
+    const load = async () => {
+      try {
+        if (translation === 'NIV') {
+          const text = await fetchNivVerse(verse.ref);
+          setTranslationText(text);
+        } else {
+          const data = await getVerseTranslation(verse.ref, translation);
+          setTranslationText(data?.text ?? null);
+        }
+      } catch {
+        setTranslationText(null);
+      } finally {
+        setTransLoading(false);
+      }
+    };
+
+    void load();
   }, [verse.ref, translation]);
 
   return (
@@ -66,16 +87,16 @@ export function VerseDisplay({
           value={translation}
           onChange={(e) => onTranslationChange(e.target.value)}
         >
-          {AVAILABLE_TRANSLATIONS.map((t) => (
+          {SUPABASE_TRANSLATIONS.map((t) => (
             <option key={t} value={t}>{t}</option>
           ))}
-          {FUTURE_TRANSLATIONS.map((t) => (
-            <option key={t} value={t} disabled>{t} (coming soon)</option>
-          ))}
+          {NIV_AVAILABLE && (
+            <option value="NIV">NIV</option>
+          )}
         </select>
 
         <span className="translation-external-links">
-          {(['ESV', 'NIV', 'NET'] as const).map((site) => (
+          {(['ESV', 'NET'] as const).map((site) => (
             <a
               key={site}
               href={buildExternalUrl(site, verse.ref)}
@@ -86,13 +107,25 @@ export function VerseDisplay({
               {site} ↗
             </a>
           ))}
+          {!NIV_AVAILABLE && (
+            <a
+              href={buildNivUrl(verse.ref)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="translation-ext-link"
+            >
+              NIV ↗
+            </a>
+          )}
         </span>
       </div>
 
       {translationText && !transLoading && (
         <blockquote className="translation-text">
           {translationText}
-          <footer className="translation-attribution">— KJV (public domain)</footer>
+          <footer className="translation-attribution">
+            — {TRANSLATION_ATTRIBUTION[translation] ?? translation}
+          </footer>
         </blockquote>
       )}
 

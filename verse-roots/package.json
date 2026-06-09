@@ -16,7 +16,9 @@
     "verify": "npm run verify --workspace=data/ingestion",
     "api": "npm run dev --workspace=apps/api",
     "dev": "concurrently \"npm run api\" \"npm run dev --workspace=apps/web\"",
-    "migrate:supabase": "npx tsx data/ingestion/src/migrate-to-supabase.ts"
+    "migrate:supabase": "npx tsx data/ingestion/src/migrate-to-supabase.ts",
+    "ingest:asv-web": "npx tsx data/ingestion/src/parse-asv-web.ts",
+    "migrate:translations": "npx tsx data/ingestion/src/migrate-translations.ts"
   },
   "devDependencies": {
     "concurrently": "^9.0.0"

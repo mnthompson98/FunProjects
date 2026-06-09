@@ -6,7 +6,7 @@ on:
 jobs:
   migrate:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     steps:
       - name: Checkout repo
@@ -31,12 +31,23 @@ jobs:
         working-directory: verse-roots
         run: npm run ingest:kjv
 
-      - name: Run Supabase migration
+      - name: Run ASV + WEB ingestion
+        working-directory: verse-roots
+        run: npm run ingest:asv-web
+
+      - name: Run Supabase migration (core data)
         working-directory: verse-roots
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: npm run migrate:supabase
+
+      - name: Run Supabase migration (ASV + WEB translations)
+        working-directory: verse-roots
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npm run migrate:translations
 
       - name: Verify migration
         working-directory: verse-roots
@@ -58,6 +69,7 @@ jobs:
             console.log('verses:', vc, '| words:', wc, '| lexicon:', lc, '| translations:', tc);
             if (vc < 29000) throw new Error('verses count too low - migration may have failed');
             if (wc < 400000) throw new Error('words count too low - migration may have failed');
+            if (tc < 60000) throw new Error('translations count too low - ASV/WEB may not have loaded');
             console.log('Migration verified successfully!');
           })();
           "
