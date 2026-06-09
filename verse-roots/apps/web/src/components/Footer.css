@@ -1,0 +1,26 @@
+.app-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 12px 1.5rem;
+  background: #111;
+  color: #888;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.app-footer a {
+  color: #aaa;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.app-footer a:hover {
+  color: #ccc;
+}
+
+.footer-sep {
+  color: #555;
+}

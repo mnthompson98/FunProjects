@@ -1,0 +1,75 @@
+name: Migrate Bible Data to Supabase
+
+on:
+  workflow_dispatch:  # manual trigger only
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: verse-roots/package-lock.json
+
+      - name: Install dependencies
+        working-directory: verse-roots
+        run: npm install
+
+      - name: Run STEPBible ingestion
+        working-directory: verse-roots
+        run: npm run ingest
+
+      - name: Run KJV ingestion
+        working-directory: verse-roots
+        run: npm run ingest:kjv
+
+      - name: Run ASV + WEB ingestion
+        working-directory: verse-roots
+        run: npm run ingest:asv-web
+
+      - name: Run Supabase migration (core data)
+        working-directory: verse-roots
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npm run migrate:supabase
+
+      - name: Run Supabase migration (ASV + WEB translations)
+        working-directory: verse-roots
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npm run migrate:translations
+
+      - name: Verify migration
+        working-directory: verse-roots
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          npx tsx -e "
+          import { createClient } from '@supabase/supabase-js';
+          import ws from 'ws';
+          (async () => {
+            const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { realtime: { transport: ws } });
+            const [{count: vc}, {count: wc}, {count: lc}, {count: tc}] = await Promise.all([
+              sb.from('verses').select('*', {count: 'exact', head: true}),
+              sb.from('original_words').select('*', {count: 'exact', head: true}),
+              sb.from('strongs_entries').select('*', {count: 'exact', head: true}),
+              sb.from('verse_translations').select('*', {count: 'exact', head: true}),
+            ]);
+            console.log('verses:', vc, '| words:', wc, '| lexicon:', lc, '| translations:', tc);
+            if (vc < 29000) throw new Error('verses count too low - migration may have failed');
+            if (wc < 400000) throw new Error('words count too low - migration may have failed');
+            if (tc < 60000) throw new Error('translations count too low - ASV/WEB may not have loaded');
+            console.log('Migration verified successfully!');
+          })();
+          "

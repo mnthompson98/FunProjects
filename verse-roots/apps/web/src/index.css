@@ -1,0 +1,54 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #1a1a2e;
+  --surface: #16213e;
+  --surface2: #0f3460;
+  --accent: #e8c96a;
+  --accent-dark: #b8962a;
+  --text: #e0e0e0;
+  --text-muted: #9a9ab0;
+  --border: #2a2a4e;
+  --font-sans: system-ui, -apple-system, sans-serif;
+  --font-serif: 'Noto Serif', Georgia, serif;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  min-height: 100vh;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  border: none;
+}
+
+a {
+  color: var(--accent);
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  color: var(--text);
+}

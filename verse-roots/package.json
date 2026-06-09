@@ -1,0 +1,26 @@
+{
+  "name": "verse-roots",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "packages/db",
+    "packages/supabase-client",
+    "packages/bible-client",
+    "apps/web",
+    "apps/api",
+    "data/ingestion"
+  ],
+  "scripts": {
+    "ingest": "npm run ingest --workspace=data/ingestion",
+    "ingest:kjv": "npx tsx data/ingestion/src/parse-kjv.ts",
+    "verify": "npm run verify --workspace=data/ingestion",
+    "api": "npm run dev --workspace=apps/api",
+    "dev": "concurrently \"npm run api\" \"npm run dev --workspace=apps/web\"",
+    "migrate:supabase": "npx tsx data/ingestion/src/migrate-to-supabase.ts",
+    "ingest:asv-web": "npx tsx data/ingestion/src/parse-asv-web.ts",
+    "migrate:translations": "npx tsx data/ingestion/src/migrate-translations.ts"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}
