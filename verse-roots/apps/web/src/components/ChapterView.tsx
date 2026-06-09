@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
-import type { OriginalWord, VerseWithWords } from '../types';
+import type { OriginalWord, VerseWithWords, StrongsEntry } from '../types';
 import { getVerseTranslation } from '@verse-roots/bible-client';
 import { fetchNivVerse, isApiBibleConfigured } from '../utils/apiBible';
 import { WordChip } from './WordChip';
+import { SidePanel } from './SidePanel';
 import { formatRef } from '../utils/formatRef';
+import type { User, SubscriptionStatus } from '../lib/supabase';
+import type { Study } from '../study/types';
 import './ChapterView.css';
 
 const SUPABASE_TRANSLATIONS = ['KJV', 'ASV', 'WEB'];
@@ -32,6 +35,16 @@ export interface ChapterViewProps {
   onVerseExpand: (ref: string) => void;
   selectedWordId: number | null;
   onWordClick: (word: OriginalWord) => void;
+  // Inline word panel props
+  selectedWord: OriginalWord | null;
+  selectedStrongs: StrongsEntry | null;
+  onPanelClose: () => void;
+  onNavigate: (osisRef: string, strongs: string) => void;
+  onStudySaved: (study: Study) => void;
+  user: User | null;
+  subscriptionStatus: SubscriptionStatus;
+  onOpenAuth: () => void;
+  onOpenAccount: () => void;
 }
 
 export function ChapterView({
@@ -43,6 +56,15 @@ export function ChapterView({
   onVerseExpand,
   selectedWordId,
   onWordClick,
+  selectedWord,
+  selectedStrongs,
+  onPanelClose,
+  onNavigate,
+  onStudySaved,
+  user,
+  subscriptionStatus,
+  onOpenAuth,
+  onOpenAccount,
 }: ChapterViewProps) {
   const chapterDisplay = formatChapterRef(chapterRef);
 
@@ -84,6 +106,15 @@ export function ChapterView({
             onToggle={() => onVerseExpand(verse.ref)}
             selectedWordId={selectedWordId}
             onWordClick={onWordClick}
+            selectedWord={selectedWord}
+            selectedStrongs={selectedStrongs}
+            onPanelClose={onPanelClose}
+            onNavigate={onNavigate}
+            onStudySaved={onStudySaved}
+            user={user}
+            subscriptionStatus={subscriptionStatus}
+            onOpenAuth={onOpenAuth}
+            onOpenAccount={onOpenAccount}
           />
         ))}
       </div>
@@ -99,6 +130,15 @@ interface ChapterVerseProps {
   onToggle: () => void;
   selectedWordId: number | null;
   onWordClick: (word: OriginalWord) => void;
+  selectedWord: OriginalWord | null;
+  selectedStrongs: StrongsEntry | null;
+  onPanelClose: () => void;
+  onNavigate: (osisRef: string, strongs: string) => void;
+  onStudySaved: (study: Study) => void;
+  user: User | null;
+  subscriptionStatus: SubscriptionStatus;
+  onOpenAuth: () => void;
+  onOpenAccount: () => void;
 }
 
 function ChapterVerse({
@@ -108,7 +148,21 @@ function ChapterVerse({
   onToggle,
   selectedWordId,
   onWordClick,
+  selectedWord,
+  selectedStrongs,
+  onPanelClose,
+  onNavigate,
+  onStudySaved,
+  user,
+  subscriptionStatus,
+  onOpenAuth,
+  onOpenAccount,
 }: ChapterVerseProps) {
+  // Show inline panel when this verse is expanded and the selected word belongs to it
+  const showInlinePanel =
+    isExpanded &&
+    selectedWord !== null &&
+    verse.words.some((w) => w.id === selectedWord.id);
   const [text, setText] = useState<string | null>(null);
   const [textLoading, setTextLoading] = useState(true);
 
@@ -151,9 +205,11 @@ function ChapterVerse({
 
       {isExpanded && (
         <div className="chapter-verse__expanded">
-          <p className="chapter-verse__expanded-hint">
-            Tap a word to explore its original {verse.testament === 'OT' ? 'Hebrew' : 'Greek'} meaning
-          </p>
+          {!showInlinePanel && (
+            <p className="chapter-verse__expanded-hint">
+              Tap a word to explore its original {verse.testament === 'OT' ? 'Hebrew' : 'Greek'} meaning
+            </p>
+          )}
           <div className="chapter-verse__words">
             {verse.words.map((word) => (
               <WordChip
@@ -164,6 +220,20 @@ function ChapterVerse({
               />
             ))}
           </div>
+          {showInlinePanel && (
+            <SidePanel
+              inline
+              word={selectedWord!}
+              strongs={selectedStrongs}
+              onClose={onPanelClose}
+              onNavigate={onNavigate}
+              onStudySaved={onStudySaved}
+              user={user}
+              subscriptionStatus={subscriptionStatus}
+              onOpenAuth={onOpenAuth}
+              onOpenAccount={onOpenAccount}
+            />
+          )}
         </div>
       )}
     </div>

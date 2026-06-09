@@ -200,6 +200,25 @@
 .concordance-item__original { font-family: var(--font-serif); color: var(--text); font-style: italic; }
 .concordance-item__gloss { color: var(--text-muted); }
 
+/* Inline variant: renders inside chapter verse expanded area */
+.side-panel--inline {
+  position: static;
+  width: 100%;
+  max-width: 100%;
+  min-width: unset;
+  height: auto;
+  border-left: none;
+  border-top: 2px solid var(--accent-dim);
+  margin-top: 1rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: visible;
+}
+.side-panel--inline .side-panel__body {
+  max-height: 420px;
+  overflow-y: auto;
+}
+
 @media (max-width: 768px) {
   .side-panel {
     position: static;

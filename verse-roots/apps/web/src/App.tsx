@@ -206,11 +206,21 @@ function App() {
               onVerseExpand={handleVerseExpand}
               selectedWordId={selectedWord?.id ?? null}
               onWordClick={handleWordClick}
+              selectedWord={selectedWord}
+              selectedStrongs={strongsLoading ? null : selectedStrongs}
+              onPanelClose={handlePanelClose}
+              onNavigate={handleConcordanceNavigate}
+              onStudySaved={handleStudySaved}
+              user={user}
+              subscriptionStatus={subscriptionStatus}
+              onOpenAuth={() => setShowAuthModal(true)}
+              onOpenAccount={() => setShowAccount(true)}
             />
           )}
         </div>
 
-        {selectedWord && (
+        {/* Right-column panel only in single-verse mode */}
+        {verse && selectedWord && (
           <SidePanel
             word={selectedWord}
             strongs={strongsLoading ? null : selectedStrongs}

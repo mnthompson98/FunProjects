@@ -18,6 +18,8 @@ interface SidePanelProps {
   subscriptionStatus: SubscriptionStatus;
   onOpenAuth: () => void;
   onOpenAccount: () => void;
+  /** When true, renders inline (no sticky, full-width, border-top instead of border-left) */
+  inline?: boolean;
 }
 
 type Tab = 'lexicon' | 'concordance' | 'study';
@@ -32,11 +34,12 @@ export function SidePanel({
   subscriptionStatus,
   onOpenAuth,
   onOpenAccount,
+  inline = false,
 }: SidePanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>('lexicon');
 
   return (
-    <aside className="side-panel">
+    <aside className={`side-panel${inline ? ' side-panel--inline' : ''}`}>
       <div className="side-panel__header">
         <div className="side-panel__word-info">
           <span className="side-panel__original">{word.originalText}</span>
