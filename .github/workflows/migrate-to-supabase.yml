@@ -46,15 +46,18 @@ jobs:
         run: |
           npx tsx -e "
           import { createClient } from '@supabase/supabase-js';
-          const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
-          const [{count: vc}, {count: wc}, {count: lc}, {count: tc}] = await Promise.all([
-            sb.from('verses').select('*', {count: 'exact', head: true}),
-            sb.from('original_words').select('*', {count: 'exact', head: true}),
-            sb.from('strongs_entries').select('*', {count: 'exact', head: true}),
-            sb.from('verse_translations').select('*', {count: 'exact', head: true}),
-          ]);
-          console.log('verses:', vc, '| words:', wc, '| lexicon:', lc, '| translations:', tc);
-          if (vc < 29000) throw new Error('verses count too low');
-          if (wc < 400000) throw new Error('words count too low');
-          console.log('Migration verified successfully!');
+          import ws from 'ws';
+          (async () => {
+            const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { realtime: { transport: ws } });
+            const [{count: vc}, {count: wc}, {count: lc}, {count: tc}] = await Promise.all([
+              sb.from('verses').select('*', {count: 'exact', head: true}),
+              sb.from('original_words').select('*', {count: 'exact', head: true}),
+              sb.from('strongs_entries').select('*', {count: 'exact', head: true}),
+              sb.from('verse_translations').select('*', {count: 'exact', head: true}),
+            ]);
+            console.log('verses:', vc, '| words:', wc, '| lexicon:', lc, '| translations:', tc);
+            if (vc < 29000) throw new Error('verses count too low - migration may have failed');
+            if (wc < 400000) throw new Error('words count too low - migration may have failed');
+            console.log('Migration verified successfully!');
+          })();
           "
