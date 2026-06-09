@@ -8,7 +8,7 @@ import { Library } from './components/Library';
 import { AuthModal } from './components/auth/AuthModal';
 import { AccountPage } from './components/auth/AccountPage';
 import { normalizeRef } from './normalizeRef';
-import { OriginalWord, VerseWithWords, StrongsEntry } from './types';
+import type { OriginalWord, VerseWithWords, StrongsEntry } from './types';
 import { getVerse, getStrongs } from '@verse-roots/bible-client';
 import {
   getCurrentUser,

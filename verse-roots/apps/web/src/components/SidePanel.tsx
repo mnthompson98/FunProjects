@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { OriginalWord, StrongsEntry, ConcordanceResponse, ConcordanceEntry } from '../types';
+import type { OriginalWord, StrongsEntry, ConcordanceResponse, ConcordanceEntry } from '../types';
 import { getConcordance } from '@verse-roots/bible-client';
 import { formatRef } from '../utils/formatRef';
 import { StudyTab } from './StudyTab';

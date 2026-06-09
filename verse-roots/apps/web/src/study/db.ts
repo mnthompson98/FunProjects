@@ -1,4 +1,4 @@
-import { Study } from './types';
+import type { Study } from './types';
 
 const DB_NAME = 'verse-roots-studies';
 const DB_VERSION = 1;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { OriginalWord, VerseWithWords } from '../types';
+import type { OriginalWord, VerseWithWords } from '../types';
 import { getVerseTranslation } from '@verse-roots/bible-client';
 import { WordChip } from './WordChip';
 import { formatRef } from '../utils';
