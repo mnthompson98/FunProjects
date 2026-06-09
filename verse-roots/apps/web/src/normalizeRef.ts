@@ -75,33 +75,32 @@ const BOOK_MAP: Record<string, string> = {
 };
 
 export function normalizeRef(input: string): string {
-  // Strip extra whitespace
   const trimmed = input.trim();
 
-  // Match patterns like "Book Chapter:Verse" or "Book C:V" or already normalized "Bbb.C.V"
-  // Handle numbered books: "1 Kings 2:3" or "1Kings 2:3"
-  const match = trimmed.match(
+  // Already normalized verse format: "Jhn.3.16"
+  if (/^[A-Z1-3][A-Za-z]{1,2}\.\d+\.\d+$/.test(trimmed)) return trimmed;
+  // Already normalized chapter format: "Jhn.3"
+  if (/^[A-Z1-3][A-Za-z]{1,2}\.\d+$/.test(trimmed)) return trimmed;
+
+  // Full verse: "John 3:16", "1 Kings 2:3", "Ps 23:1"
+  const verseMatch = trimmed.match(
     /^(\d\s*[A-Za-z]+(?:\s+[A-Za-z]+)*|[A-Za-z]+(?:\s+[A-Za-z]+)*)\s+(\d+)[:\.](\d+)$/
   );
-
-  if (!match) {
-    // Maybe it's already in "Bbb.C.V" format
-    if (/^[A-Z][A-Za-z]{2}\.\d+\.\d+$/.test(trimmed)) {
-      return trimmed;
-    }
-    return trimmed; // Return as-is and let the API 404
-  }
-
-  const [, bookRaw, chapter, verse] = match;
-
-  // Normalize book: lowercase, remove spaces
-  const bookKey = bookRaw.toLowerCase().replace(/\s+/g, '');
-  const bookCode = BOOK_MAP[bookKey];
-
-  if (!bookCode) {
-    // Try partial match — use first 3 chars capitalized
+  if (verseMatch) {
+    const bookCode = BOOK_MAP[verseMatch[1].toLowerCase().replace(/\s+/g, '')];
+    if (bookCode) return `${bookCode}.${verseMatch[2]}.${verseMatch[3]}`;
     return trimmed;
   }
 
-  return `${bookCode}.${chapter}.${verse}`;
+  // Chapter-only: "John 3", "Ps 23", "1 Kings 2"
+  const chapterMatch = trimmed.match(
+    /^(\d\s*[A-Za-z]+(?:\s+[A-Za-z]+)*|[A-Za-z]+(?:\s+[A-Za-z]+)*)\s+(\d+)$/
+  );
+  if (chapterMatch) {
+    const bookCode = BOOK_MAP[chapterMatch[1].toLowerCase().replace(/\s+/g, '')];
+    if (bookCode) return `${bookCode}.${chapterMatch[2]}`;
+    return trimmed;
+  }
+
+  return trimmed;
 }

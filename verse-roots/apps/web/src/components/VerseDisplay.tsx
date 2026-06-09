@@ -83,6 +83,14 @@ export function VerseDisplay({
       <div className="translation-bar">
         <span className="translation-label">Translation:</span>
         <div className="translation-pills" role="group" aria-label="Translation">
+          {NIV_AVAILABLE && (
+            <button
+              className={`translation-pill${translation === 'NIV' ? ' translation-pill--active' : ''}`}
+              onClick={() => onTranslationChange('NIV')}
+            >
+              NIV
+            </button>
+          )}
           {SUPABASE_TRANSLATIONS.map((t) => (
             <button
               key={t}
@@ -92,14 +100,6 @@ export function VerseDisplay({
               {t}
             </button>
           ))}
-          {NIV_AVAILABLE && (
-            <button
-              className={`translation-pill${translation === 'NIV' ? ' translation-pill--active' : ''}`}
-              onClick={() => onTranslationChange('NIV')}
-            >
-              NIV
-            </button>
-          )}
         </div>
 
         <span className="translation-external-links">

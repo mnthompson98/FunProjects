@@ -1,20 +1,15 @@
-.reference-input-container {
-  padding: 1.25rem 2.5rem 0.75rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
-}
+.reference-input-container { width: 100%; }
 
 .reference-form {
   display: flex;
-  gap: 0.6rem;
-  max-width: 480px;
+  gap: 0.55rem;
+  max-width: 560px;
 }
 
 .reference-input {
   flex: 1;
   padding: 0.6rem 1rem;
-  background: var(--surface);
+  background: var(--bg);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius);
   color: var(--text);

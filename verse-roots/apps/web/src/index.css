@@ -5,11 +5,11 @@
 }
 
 :root {
-  /* ── Surfaces (warm parchment / linen) ── */
-  --bg:       #f3efe4;
-  --surface:  #faf8f2;
-  --surface2: #ece8db;
-  --surface3: #e2ddd0;
+  /* ── Surfaces ── */
+  --bg:       #f0ebe0;
+  --surface:  #ffffff;
+  --surface2: #f5f2ea;
+  --surface3: #ece8de;
 
   /* ── Accent — sage / moss green ── */
   --accent:       #4e6e52;
@@ -18,18 +18,18 @@
   --accent-dark:  #3a5540;
   --accent-light: rgba(78, 110, 82, 0.08);
 
-  /* ── Warm earth — for scripture, headings ── */
+  /* ── Warm earth — scripture, headings ── */
   --earth:      #7a5230;
   --earth-dim:  rgba(122, 82, 48, 0.15);
 
   /* ── Text ── */
   --text:        #282d22;
-  --text-muted:  #7c8472;
-  --text-subtle: #b4b0a5;
+  --text-muted:  #6e7866;
+  --text-subtle: #aca89f;
 
   /* ── Borders ── */
-  --border:        rgba(0, 0, 0, 0.08);
-  --border-strong: rgba(0, 0, 0, 0.14);
+  --border:        rgba(0, 0, 0, 0.07);
+  --border-strong: rgba(0, 0, 0, 0.13);
 
   /* ── Semantic ── */
   --success: #3d8a5c;
@@ -42,8 +42,8 @@
   --radius-xl: 20px;
 
   /* ── Elevation ── */
-  --shadow:    0 1px 3px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.06);
-  --shadow-lg: 0 8px 40px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08);
+  --shadow:    0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.07);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.07);
 
   /* ── Typography ── */
   --font-sans:  'DM Sans', system-ui, -apple-system, sans-serif;
@@ -51,6 +51,9 @@
 
   /* ── Motion ── */
   --transition: 0.15s ease;
+
+  /* ── Layout ── */
+  --header-h: 60px;
 }
 
 body {

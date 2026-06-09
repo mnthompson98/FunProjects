@@ -1,0 +1,136 @@
+.chapter-view {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.chapter-view__header {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.chapter-view__title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.chapter-view__ref {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--earth);
+  letter-spacing: 0.01em;
+}
+
+.chapter-view__count {
+  font-size: 0.78rem;
+  color: var(--text-subtle);
+  font-weight: 400;
+}
+
+/* Verse list */
+.chapter-view__verses {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+/* Individual verse */
+.chapter-verse {
+  border-bottom: 1px solid var(--border);
+}
+.chapter-verse:last-child {
+  border-bottom: none;
+}
+
+.chapter-verse__row {
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.8rem 1.25rem;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.chapter-verse__row:hover {
+  background: var(--surface2);
+}
+.chapter-verse--expanded .chapter-verse__row {
+  background: var(--accent-light);
+}
+
+.chapter-verse__num {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+  min-width: 1.5rem;
+  flex-shrink: 0;
+  padding-top: 0.2rem;
+  font-family: var(--font-sans);
+}
+
+.chapter-verse__text {
+  flex: 1;
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  color: var(--text);
+  line-height: 1.65;
+}
+
+.chapter-verse__shimmer {
+  display: inline-block;
+  width: 80%;
+  height: 0.9em;
+  background: linear-gradient(90deg, var(--surface2) 25%, var(--surface3) 50%, var(--surface2) 75%);
+  background-size: 200% 100%;
+  border-radius: 3px;
+  animation: shimmer 1.4s infinite;
+  vertical-align: middle;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.chapter-verse__chevron {
+  font-size: 0.6rem;
+  color: var(--text-subtle);
+  flex-shrink: 0;
+}
+
+/* Expanded state */
+.chapter-verse__expanded {
+  padding: 1rem 1.25rem 1.25rem 3.25rem;
+  border-top: 1px solid var(--border);
+  background: var(--surface2);
+  animation: expand-in 0.18s ease;
+}
+@keyframes expand-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.chapter-verse__expanded-hint {
+  font-size: 0.75rem;
+  color: var(--text-subtle);
+  font-style: italic;
+  margin-bottom: 0.85rem;
+}
+
+.chapter-verse__words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: flex-start;
+}

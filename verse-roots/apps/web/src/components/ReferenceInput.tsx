@@ -9,7 +9,7 @@ interface ReferenceInputProps {
 }
 
 export function ReferenceInput({ onSubmit, loading, error }: ReferenceInputProps) {
-  const [value, setValue] = useState('Lam 3:22');
+  const [value, setValue] = useState('');
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -26,7 +26,7 @@ export function ReferenceInput({ onSubmit, loading, error }: ReferenceInputProps
           type="text"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder="e.g. John 3:16, Genesis 1:1, Lam 3:22"
+          placeholder="e.g. John 3:16  ·  John 3  ·  Psalm 23:1"
           aria-label="Bible reference"
           disabled={loading}
         />

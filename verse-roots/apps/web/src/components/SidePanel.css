@@ -8,6 +8,9 @@
   max-width: 400px;
   overflow: hidden;
   flex-shrink: 0;
+  position: sticky;
+  top: var(--header-h);
+  height: calc(100vh - var(--header-h));
 }
 
 .side-panel__header {
@@ -199,6 +202,8 @@
 
 @media (max-width: 768px) {
   .side-panel {
+    position: static;
+    height: auto;
     width: 100%; max-width: 100%; min-width: unset;
     border-left: none; border-top: 1px solid var(--border);
   }

@@ -1,8 +1,5 @@
 .verse-display {
-  padding: 2rem 2.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
+  /* padding and max-width handled by parent .app-main-col */
 }
 
 .verse-ref {

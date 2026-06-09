@@ -3,13 +3,15 @@ import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { ReferenceInput } from './components/ReferenceInput';
 import { VerseDisplay } from './components/VerseDisplay';
+import { ChapterView } from './components/ChapterView';
 import { SidePanel } from './components/SidePanel';
 import { Library } from './components/Library';
 import { AuthModal } from './components/auth/AuthModal';
 import { AccountPage } from './components/auth/AccountPage';
 import { normalizeRef } from './normalizeRef';
 import type { OriginalWord, VerseWithWords, StrongsEntry } from './types';
-import { getVerse, getStrongs } from '@verse-roots/bible-client';
+import { getVerse, getStrongs, getChapter } from '@verse-roots/bible-client';
+import { isApiBibleConfigured } from './utils/apiBible';
 import {
   onAuthStateChange,
   getSubscriptionStatus,
@@ -19,19 +21,23 @@ import { initialSync, maybeSyncStudy } from './study/sync';
 import type { Study } from './study/types';
 import './App.css';
 
-const FREE_STATUS: SubscriptionStatus = { plan: 'free', currentPeriodEnd: null, canSync: false }; // canSync false = not logged in
+const FREE_STATUS: SubscriptionStatus = { plan: 'free', currentPeriodEnd: null, canSync: false };
 
 function App() {
   const [verse, setVerse] = useState<VerseWithWords | null>(null);
+  const [chapter, setChapter] = useState<VerseWithWords[] | null>(null);
+  const [chapterRef, setChapterRef] = useState<string | null>(null);
+  const [expandedVerseRef, setExpandedVerseRef] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedWord, setSelectedWord] = useState<OriginalWord | null>(null);
   const [selectedStrongs, setSelectedStrongs] = useState<StrongsEntry | null>(null);
   const [strongsLoading, setStrongsLoading] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
-  const [selectedTranslation, setSelectedTranslation] = useState('KJV');
+  const [selectedTranslation, setSelectedTranslation] = useState(
+    isApiBibleConfigured ? 'NIV' : 'KJV'
+  );
 
-  // Auth state
   const [user, setUser] = useState<User | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus>(FREE_STATUS);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -43,11 +49,6 @@ function App() {
     return status;
   }, []);
 
-  // On mount: restore session via onAuthStateChange (fires immediately with
-  // INITIAL_SESSION for existing sessions, and SIGNED_IN when the magic-link
-  // hash is processed on redirect-back). No separate getCurrentUser() call is
-  // needed — the listener covers both the initial session and all subsequent
-  // auth events.
   useEffect(() => {
     const unsubscribe = onAuthStateChange(async (u) => {
       setUser(u);
@@ -62,43 +63,47 @@ function App() {
         setSubscriptionStatus(FREE_STATUS);
       }
     });
-
     return unsubscribe;
   }, [fetchSubscription]);
 
-  /**
-   * Core verse-loading logic — shared by both the ReferenceInput and the
-   * concordance "click to navigate" path.  `autoSelectStrongs` lets the
-   * concordance tab automatically highlight the word it just navigated to.
-   */
-  const loadVerse = useCallback(async (
-    ref: string,
-    autoSelectStrongs?: string,
-  ) => {
+  const loadVerse = useCallback(async (ref: string, autoSelectStrongs?: string) => {
     setLoading(true);
     setError(null);
     setVerse(null);
+    setChapter(null);
+    setChapterRef(null);
+    setExpandedVerseRef(null);
     setSelectedWord(null);
     setSelectedStrongs(null);
 
     try {
-      const data = await getVerse(ref);
-      if (!data) {
-        setError(`Verse not found: "${ref}". Try "John 3:16" or "Gen 1:1".`);
-        return;
-      }
-      setVerse(data);
+      const parts = ref.split('.');
+      if (parts.length === 2) {
+        // Chapter mode
+        const data = await getChapter(ref);
+        if (!data || data.length === 0) {
+          setError(`Chapter not found: "${ref}". Try "John 3:16" for a single verse.`);
+          return;
+        }
+        setChapter(data);
+        setChapterRef(ref);
+      } else {
+        // Single verse mode
+        const data = await getVerse(ref);
+        if (!data) {
+          setError(`Verse not found: "${ref}". Try "John 3:16" or "Gen 1:1".`);
+          return;
+        }
+        setVerse(data);
 
-      // Auto-select the first word matching the Strong's number (concordance navigation)
-      if (autoSelectStrongs) {
-        const match = data.words.find((w) => w.strongs === autoSelectStrongs);
-        if (match) {
-          setSelectedWord(match);
-          try {
-            const sData: StrongsEntry | null = await getStrongs(autoSelectStrongs);
-            if (sData) setSelectedStrongs(sData);
-          } catch {
-            // Silently fail
+        if (autoSelectStrongs) {
+          const match = data.words.find((w) => w.strongs === autoSelectStrongs);
+          if (match) {
+            setSelectedWord(match);
+            try {
+              const sData: StrongsEntry | null = await getStrongs(autoSelectStrongs);
+              if (sData) setSelectedStrongs(sData);
+            } catch { /* silently fail */ }
           }
         }
       }
@@ -110,11 +115,9 @@ function App() {
   }, []);
 
   const handleRefSubmit = useCallback(async (raw: string) => {
-    const ref = normalizeRef(raw);
-    await loadVerse(ref);
+    await loadVerse(normalizeRef(raw));
   }, [loadVerse]);
 
-  /** Called by ConcordanceTab when the user clicks an entry */
   const handleConcordanceNavigate = useCallback((osisRef: string, strongs: string) => {
     loadVerse(osisRef, strongs);
   }, [loadVerse]);
@@ -122,17 +125,13 @@ function App() {
   const handleWordClick = useCallback(async (word: OriginalWord) => {
     setSelectedWord(word);
     setSelectedStrongs(null);
-
     if (word.strongs) {
       setStrongsLoading(true);
       try {
         const data: StrongsEntry | null = await getStrongs(word.strongs);
         if (data) setSelectedStrongs(data);
-      } catch {
-        // Silently fail — lexicon just shows empty
-      } finally {
-        setStrongsLoading(false);
-      }
+      } catch { /* silently fail */ }
+      finally { setStrongsLoading(false); }
     }
   }, []);
 
@@ -141,7 +140,6 @@ function App() {
     setSelectedStrongs(null);
   }, []);
 
-  /** Called by StudyTab after a successful local save */
   const handleStudySaved = useCallback((study: Study) => {
     if (user && subscriptionStatus.canSync) {
       maybeSyncStudy(study, user.id, subscriptionStatus.canSync);
@@ -153,6 +151,12 @@ function App() {
     await initialSync(user.id);
   }, [user, subscriptionStatus.canSync]);
 
+  const handleVerseExpand = useCallback((ref: string) => {
+    setExpandedVerseRef((prev) => prev === ref ? null : ref);
+    setSelectedWord(null);
+    setSelectedStrongs(null);
+  }, []);
+
   return (
     <div className="app">
       <Header
@@ -163,35 +167,64 @@ function App() {
         onOpenAccount={() => setShowAccount(true)}
         onSync={handleManualSync}
       />
-      <main className="app__main">
-        <div className="app__content">
+
+      <div className="app-search">
+        <div className="app-search__inner">
           <ReferenceInput onSubmit={handleRefSubmit} loading={loading} error={error} />
-          {verse && (
-            <div className="app__verse-area">
-              <VerseDisplay
-                verse={verse}
-                selectedWordId={selectedWord?.id ?? null}
-                onWordClick={handleWordClick}
-                translation={selectedTranslation}
-                onTranslationChange={setSelectedTranslation}
-              />
-              {selectedWord && (
-                <SidePanel
-                  word={selectedWord}
-                  strongs={strongsLoading ? null : selectedStrongs}
-                  onClose={handlePanelClose}
-                  onNavigate={handleConcordanceNavigate}
-                  onStudySaved={handleStudySaved}
-                  user={user}
-                  subscriptionStatus={subscriptionStatus}
-                  onOpenAuth={() => setShowAuthModal(true)}
-                  onOpenAccount={() => setShowAccount(true)}
-                />
-              )}
+        </div>
+      </div>
+
+      <main className="app-workspace">
+        <div className="app-main-col">
+          {!verse && !chapter && !loading && (
+            <div className="app-empty">
+              <div className="app-empty__icon">✦</div>
+              <p className="app-empty__title">Explore Scripture in its original language</p>
+              <p className="app-empty__hint">
+                Enter a verse like <em>John 3:16</em> to study a single verse, or a chapter like <em>John 3</em> to browse and select from all its verses.
+              </p>
             </div>
           )}
+
+          {verse && (
+            <VerseDisplay
+              verse={verse}
+              selectedWordId={selectedWord?.id ?? null}
+              onWordClick={handleWordClick}
+              translation={selectedTranslation}
+              onTranslationChange={setSelectedTranslation}
+            />
+          )}
+
+          {chapter && chapterRef && (
+            <ChapterView
+              verses={chapter}
+              chapterRef={chapterRef}
+              translation={selectedTranslation}
+              onTranslationChange={setSelectedTranslation}
+              expandedVerseRef={expandedVerseRef}
+              onVerseExpand={handleVerseExpand}
+              selectedWordId={selectedWord?.id ?? null}
+              onWordClick={handleWordClick}
+            />
+          )}
         </div>
+
+        {selectedWord && (
+          <SidePanel
+            word={selectedWord}
+            strongs={strongsLoading ? null : selectedStrongs}
+            onClose={handlePanelClose}
+            onNavigate={handleConcordanceNavigate}
+            onStudySaved={handleStudySaved}
+            user={user}
+            subscriptionStatus={subscriptionStatus}
+            onOpenAuth={() => setShowAuthModal(true)}
+            onOpenAccount={() => setShowAccount(true)}
+          />
+        )}
       </main>
+
       {showLibrary && (
         <Library
           onOpen={(ref) => { loadVerse(ref); setShowLibrary(false); }}
