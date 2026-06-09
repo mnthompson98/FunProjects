@@ -2,6 +2,12 @@ import { useState } from 'react';
 import { sendMagicLink } from '../../lib/supabase';
 import './AuthModal.css';
 
+// Detect iOS PWA standalone mode — magic links open in Safari, not the PWA,
+// so sessions don't transfer automatically due to iOS storage isolation.
+const isIosPwa =
+  typeof window !== 'undefined' &&
+  (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+
 interface AuthModalProps {
   onClose: () => void;
 }
@@ -42,10 +48,18 @@ export function AuthModal({ onClose }: AuthModalProps) {
           <div className="auth-modal__sent">
             <div className="auth-modal__sent-icon">✓</div>
             <h2>Check your email</h2>
-            <p>
-              We sent a magic link to <strong>{email}</strong>. Click it to sign in — no
-              password needed.
-            </p>
+            {isIosPwa ? (
+              <p>
+                We sent a link to <strong>{email}</strong>. Tap it in your email — it will open
+                in Safari. Once signed in there, come back here and enter your email one more
+                time. This only happens once on this device.
+              </p>
+            ) : (
+              <p>
+                We sent a magic link to <strong>{email}</strong>. Click it to sign in — no
+                password needed.
+              </p>
+            )}
             <button className="auth-modal__btn auth-modal__btn--secondary" onClick={onClose}>
               Done
             </button>
