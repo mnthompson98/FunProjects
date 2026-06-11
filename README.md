@@ -1,2 +1,2 @@
 # FunProjects
-Playing around with Claude Code
+Verseroots bible study tool
