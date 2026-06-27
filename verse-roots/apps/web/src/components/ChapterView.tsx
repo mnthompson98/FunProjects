@@ -214,12 +214,6 @@ export function ChapterView({
         <div className="chapter-view__title-row">
           <h2 className="chapter-view__ref">{chapterDisplay}</h2>
           <span className="chapter-view__count">{verses.length} verses</span>
-          <button
-            className={`chapter-view__select-btn${selectMode ? ' chapter-view__select-btn--active' : ''}`}
-            onClick={() => (selectMode ? exitSelectMode() : setSelectMode(true))}
-          >
-            {selectMode ? 'Done' : '✎ Reflect on a passage'}
-          </button>
         </div>
         {selectMode && (
           <p className="chapter-view__select-hint">
@@ -274,15 +268,28 @@ export function ChapterView({
         ))}
       </div>
 
-      {selectMode && hasSelection && (
-        <div className="reflect-bar" role="region" aria-label="Selected passage">
-          <span className="reflect-bar__label">{selectionLabel}</span>
-          <div className="reflect-bar__actions">
-            <button className="reflect-bar__clear" onClick={clearSelection}>Clear</button>
-            <button className="reflect-bar__go" onClick={handleReflect}>Reflect →</button>
+      <div className="chapter-fab">
+        {!selectMode ? (
+          <button className="chapter-fab__enter" onClick={() => setSelectMode(true)}>
+            ✎ Reflect on a passage
+          </button>
+        ) : (
+          <div className="chapter-fab__bar" role="region" aria-label="Passage selection">
+            <button className="chapter-fab__done" onClick={exitSelectMode}>Done</button>
+            {hasSelection ? (
+              <>
+                <span className="chapter-fab__label">{selectionLabel}</span>
+                <div className="chapter-fab__actions">
+                  <button className="reflect-bar__clear" onClick={clearSelection}>Clear</button>
+                  <button className="reflect-bar__go" onClick={handleReflect}>Reflect →</button>
+                </div>
+              </>
+            ) : (
+              <span className="chapter-fab__placeholder">Tap verses to select</span>
+            )}
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </section>
   );
 }
