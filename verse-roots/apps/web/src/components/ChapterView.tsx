@@ -145,13 +145,19 @@ function ChapterVerse({
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (showInlinePanel && panelRef.current) {
-      // Small delay lets the panel finish rendering before measuring
-      const id = setTimeout(() => {
-        panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }, 80);
-      return () => clearTimeout(id);
-    }
+    if (!showInlinePanel) return;
+    // rAF x2: first lets React paint the panel, second lets layout settle
+    const raf1 = requestAnimationFrame(() => {
+      const raf2 = requestAnimationFrame(() => {
+        const el = panelRef.current;
+        if (!el) return;
+        const headerHeight = 60; // matches --header-h in CSS
+        const top = el.getBoundingClientRect().top + window.scrollY - headerHeight;
+        window.scrollTo({ top, behavior: 'smooth' });
+      });
+      return () => cancelAnimationFrame(raf2);
+    });
+    return () => cancelAnimationFrame(raf1);
   }, [showInlinePanel]);
 
   const [text, setText] = useState<string | null>(null);
