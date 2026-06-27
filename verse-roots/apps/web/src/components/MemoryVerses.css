@@ -1,0 +1,82 @@
+.memverse-overlay {
+  position: fixed; inset: 0; z-index: 55;
+  background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center;
+  padding: 1.5rem;
+}
+
+.memverse-panel {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  width: 100%; max-width: 600px;
+  max-height: calc(100svh - 3rem);
+  display: flex; flex-direction: column;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.55);
+  overflow: hidden;
+}
+
+.memverse-header {
+  display: flex; align-items: center; gap: 0.85rem;
+  padding: 1.1rem 1.4rem 0.9rem;
+  border-bottom: 1px solid var(--border-strong);
+}
+.memverse-back {
+  background: none; border: 1px solid var(--border-strong);
+  color: var(--text-muted); font-size: 0.78rem; font-weight: 500;
+  padding: 0.3rem 0.7rem; border-radius: var(--radius-sm); cursor: pointer;
+  transition: color var(--transition), border-color var(--transition);
+}
+.memverse-back:hover { color: var(--text); border-color: var(--accent-dim); }
+.memverse-title {
+  font-family: var(--font-serif); font-size: 1.4rem; font-weight: 300; color: var(--text);
+}
+
+.memverse-intro {
+  padding: 0.9rem 1.4rem 0;
+  font-size: 0.8rem; color: var(--text-muted); line-height: 1.6;
+}
+
+.memverse-list {
+  flex: 1; overflow-y: auto;
+  padding: 1rem 1.4rem 0.5rem;
+  display: flex; flex-direction: column; gap: 1.4rem;
+}
+
+.memverse-series__name {
+  font-size: 0.68rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 0.6rem;
+  padding-bottom: 0.35rem; border-bottom: 1px solid var(--border);
+}
+
+.memverse-topics { display: flex; flex-direction: column; gap: 0.55rem; }
+.memverse-topic {
+  display: flex; align-items: baseline; gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.memverse-topic__name {
+  flex: 1; min-width: 8rem;
+  font-size: 0.88rem; color: var(--text); font-weight: 500;
+}
+.memverse-topic__refs { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.memverse-ref {
+  background: var(--surface2); border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm); color: var(--accent);
+  font-family: var(--font-sans); font-size: 0.74rem; font-weight: 500;
+  padding: 0.2rem 0.55rem; cursor: pointer; white-space: nowrap;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+.memverse-ref:hover { background: var(--accent); color: #0F0D0B; border-color: var(--accent); }
+
+.memverse-attribution {
+  padding: 0.85rem 1.4rem;
+  border-top: 1px solid var(--border-strong);
+  font-size: 0.68rem; color: var(--text-subtle);
+}
+.memverse-attribution a { color: var(--accent); text-decoration: none; }
+.memverse-attribution a:hover { text-decoration: underline; }
+
+@media (max-width: 768px) {
+  .memverse-overlay { padding: 0; }
+  .memverse-panel { max-width: 100%; height: 100svh; max-height: 100svh; border-radius: 0; border: none; }
+}

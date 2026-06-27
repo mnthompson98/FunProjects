@@ -6,6 +6,7 @@ import { VerseDisplay } from './components/VerseDisplay';
 import { ChapterView } from './components/ChapterView';
 import { SidePanel } from './components/SidePanel';
 import { Library } from './components/Library';
+import { MemoryVerses } from './components/MemoryVerses';
 import { normalizeRef } from './normalizeRef';
 import type { OriginalWord, VerseWithWords, StrongsEntry } from './types';
 import { getVerse, getStrongs, getChapter } from '@verse-roots/bible-client';
@@ -34,6 +35,7 @@ function App() {
   const [selectedStrongs, setSelectedStrongs] = useState<StrongsEntry | null>(null);
   const [strongsLoading, setStrongsLoading] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
+  const [showMemoryVerses, setShowMemoryVerses] = useState(false);
   const [selectedTranslation, setSelectedTranslation] = useState(
     isApiBibleConfigured ? 'NIV' : 'KJV'
   );
@@ -191,7 +193,10 @@ function App() {
 
   return (
     <div className="app">
-      <Header onOpenLibrary={() => setShowLibrary(true)} />
+      <Header
+        onOpenLibrary={() => setShowLibrary(true)}
+        onOpenMemoryVerses={() => setShowMemoryVerses(true)}
+      />
 
       <div className="app-search">
         <div className="app-search__inner">
@@ -272,6 +277,13 @@ function App() {
           onOpen={(ref) => { loadVerse(ref); setShowLibrary(false); }}
           onOpenReflection={(study) => { setReflection({ study }); setShowLibrary(false); }}
           onClose={() => setShowLibrary(false)}
+        />
+      )}
+
+      {showMemoryVerses && (
+        <MemoryVerses
+          onOpen={(ref) => { loadVerse(ref); setShowMemoryVerses(false); }}
+          onClose={() => setShowMemoryVerses(false)}
         />
       )}
       <Footer />
