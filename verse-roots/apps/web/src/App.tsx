@@ -226,13 +226,31 @@ function App() {
         </div>
 
         {verse && selectedWord && (
-          <SidePanel
-            word={selectedWord}
-            strongs={strongsLoading ? null : selectedStrongs}
-            onClose={handlePanelClose}
-            onNavigate={handleConcordanceNavigate}
-            onStudySaved={handleStudySaved}
-          />
+          <div ref={useCallback((node: HTMLDivElement | null) => {
+            if (!node) return;
+            const timer = setTimeout(() => {
+              const HEADER = 60;
+              const fromTop = node.getBoundingClientRect().top;
+              const currentScroll =
+                window.pageYOffset ??
+                document.documentElement.scrollTop ??
+                document.body.scrollTop ??
+                0;
+              const target = Math.max(0, currentScroll + fromTop - HEADER);
+              window.scroll(0, target);
+              document.documentElement.scrollTop = target;
+              document.body.scrollTop = target;
+            }, 200);
+            return () => clearTimeout(timer);
+          }, [])}>
+            <SidePanel
+              word={selectedWord}
+              strongs={strongsLoading ? null : selectedStrongs}
+              onClose={handlePanelClose}
+              onNavigate={handleConcordanceNavigate}
+              onStudySaved={handleStudySaved}
+            />
+          </div>
         )}
       </main>
 
