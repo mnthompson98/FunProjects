@@ -1,7 +1,7 @@
 import type { Study, StudyGroup } from './types';
 
 const DB_NAME = 'verse-roots-studies';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const STORE_NAME = 'studies';
 
 let dbPromise: Promise<IDBDatabase> | null = null;
@@ -13,7 +13,8 @@ export function openStudyDb(): Promise<IDBDatabase> {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
 
     req.onupgradeneeded = (event) => {
-      const db = (event.target as IDBOpenDBRequest).result;
+      const target = event.target as IDBOpenDBRequest;
+      const db = target.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
         store.createIndex('verseRef',     'verseRef',     { unique: false });
@@ -22,6 +23,13 @@ export function openStudyDb(): Promise<IDBDatabase> {
       }
       if (event.oldVersion < 2) {
         db.createObjectStore('groups', { keyPath: 'id' });
+      }
+      if (event.oldVersion < 3) {
+        // Index passage reflections so we can look up existing journals on a passage.
+        const store = target.transaction!.objectStore(STORE_NAME);
+        if (!store.indexNames.contains('passageRef')) {
+          store.createIndex('passageRef', 'passageRef', { unique: false });
+        }
       }
     };
 
@@ -96,6 +104,28 @@ export async function getStudiesByVerse(verseRef: string): Promise<Study[]> {
         cursor.continue();
       } else {
         // Sort by updatedAt desc
+        results.sort((a, b) => b.updatedAt - a.updatedAt);
+        resolve(results);
+      }
+    };
+    req.onerror = () => reject(req.error);
+  });
+}
+
+export async function getStudiesByPassage(passageRef: string): Promise<Study[]> {
+  const db = await openStudyDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const store = tx.objectStore(STORE_NAME);
+    const index = store.index('passageRef');
+    const results: Study[] = [];
+    const req = index.openCursor(IDBKeyRange.only(passageRef));
+    req.onsuccess = (event) => {
+      const cursor = (event.target as IDBRequest<IDBCursorWithValue | null>).result;
+      if (cursor) {
+        results.push(cursor.value as Study);
+        cursor.continue();
+      } else {
         results.sort((a, b) => b.updatedAt - a.updatedAt);
         resolve(results);
       }

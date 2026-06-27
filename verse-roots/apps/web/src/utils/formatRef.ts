@@ -83,3 +83,18 @@ export function formatRef(osisRef: string): string {
   const bookName = OSIS_TO_DISPLAY[bookCode] ?? bookCode;
   return `${bookName} ${chapter}:${verse}`;
 }
+
+/**
+ * Format a passage span like "Jhn.3.16-17" to "John 3:16-17", or a single
+ * verse "Jhn.3.16" to "John 3:16". Ranges are within one chapter.
+ */
+export function formatPassageRef(passageRef: string): string {
+  const parts = passageRef.split('.');
+  if (parts.length !== 3) return passageRef;
+
+  const [bookCode, chapter, verses] = parts;
+  const bookName = OSIS_TO_DISPLAY[bookCode] ?? bookCode;
+  const [start, end] = verses.split('-');
+  if (end && end !== start) return `${bookName} ${chapter}:${start}-${end}`;
+  return `${bookName} ${chapter}:${start}`;
+}
