@@ -213,7 +213,7 @@ export async function getStrongs(strongs: string): Promise<StrongsEntry | null> 
 }
 
 /** Fetch concordance data for a Strong's number. */
-export async function getConcordance(strongs: string, limit = 50): Promise<ConcordanceResponse> {
+export async function getConcordance(strongs: string, limit = 2000): Promise<ConcordanceResponse> {
   // Total count
   const { count } = await bibleSupa
     .from('original_words')

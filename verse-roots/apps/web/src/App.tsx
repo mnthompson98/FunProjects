@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { ReferenceInput } from './components/ReferenceInput';
@@ -12,6 +12,15 @@ import { getVerse, getStrongs, getChapter } from '@verse-roots/bible-client';
 import { isApiBibleConfigured } from './utils/apiBible';
 import type { Study } from './study/types';
 import './App.css';
+
+interface NavSnapshot {
+  verse: VerseWithWords | null;
+  chapter: VerseWithWords[] | null;
+  chapterRef: string | null;
+  expandedVerseRef: string | null;
+  selectedWord: OriginalWord | null;
+  selectedStrongs: StrongsEntry | null;
+}
 
 function App() {
   const [verse, setVerse] = useState<VerseWithWords | null>(null);
@@ -27,8 +36,57 @@ function App() {
   const [selectedTranslation, setSelectedTranslation] = useState(
     isApiBibleConfigured ? 'NIV' : 'KJV'
   );
+  const [navHistory, setNavHistory] = useState<NavSnapshot[]>([]);
+
+  // Always-current snapshot so loadVerse can push it without stale closures
+  const snapshotRef = useRef<NavSnapshot>({
+    verse: null, chapter: null, chapterRef: null,
+    expandedVerseRef: null, selectedWord: null, selectedStrongs: null,
+  });
+  useEffect(() => {
+    snapshotRef.current = { verse, chapter, chapterRef, expandedVerseRef, selectedWord, selectedStrongs };
+  }, [verse, chapter, chapterRef, expandedVerseRef, selectedWord, selectedStrongs]);
+
+  const restoreSnapshot = useCallback((snap: NavSnapshot) => {
+    setVerse(snap.verse);
+    setChapter(snap.chapter);
+    setChapterRef(snap.chapterRef);
+    setExpandedVerseRef(snap.expandedVerseRef);
+    setSelectedWord(snap.selectedWord);
+    setSelectedStrongs(snap.selectedStrongs);
+    setError(null);
+  }, []);
+
+  const handleBack = useCallback(() => {
+    setNavHistory((prev) => {
+      if (prev.length === 0) return prev;
+      restoreSnapshot(prev[prev.length - 1]);
+      return prev.slice(0, -1);
+    });
+  }, [restoreSnapshot]);
+
+  // Let browser back gesture/button trigger in-app back
+  useEffect(() => {
+    const onPopState = () => {
+      setNavHistory((prev) => {
+        if (prev.length === 0) return prev;
+        restoreSnapshot(prev[prev.length - 1]);
+        window.history.pushState({ depth: prev.length - 1 }, '');
+        return prev.slice(0, -1);
+      });
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, [restoreSnapshot]);
 
   const loadVerse = useCallback(async (ref: string, autoSelectStrongs?: string) => {
+    // Push current view before navigating
+    const current = snapshotRef.current;
+    if (current.verse || current.chapter) {
+      setNavHistory((prev) => [...prev, current]);
+      window.history.pushState({ depth: 1 }, '');
+    }
+
     setLoading(true);
     setError(null);
     setVerse(null);
@@ -72,7 +130,7 @@ function App() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleRefSubmit = useCallback(async (raw: string) => {
     await loadVerse(normalizeRef(raw));
@@ -101,9 +159,7 @@ function App() {
   }, []);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleStudySaved = useCallback((_study: Study) => {
-    // Studies are saved locally to IndexedDB in StudyTab; no remote sync needed.
-  }, []);
+  const handleStudySaved = useCallback((_study: Study) => {}, []);
 
   const handleVerseExpand = useCallback((ref: string) => {
     setExpandedVerseRef((prev) => prev === ref ? null : ref);
@@ -111,12 +167,19 @@ function App() {
     setSelectedStrongs(null);
   }, []);
 
+  const canGoBack = navHistory.length > 0;
+
   return (
     <div className="app">
       <Header onOpenLibrary={() => setShowLibrary(true)} />
 
       <div className="app-search">
         <div className="app-search__inner">
+          {canGoBack && (
+            <button className="app-back-btn" onClick={handleBack} aria-label="Go back">
+              ← Back
+            </button>
+          )}
           <ReferenceInput onSubmit={handleRefSubmit} loading={loading} error={error} />
         </div>
       </div>

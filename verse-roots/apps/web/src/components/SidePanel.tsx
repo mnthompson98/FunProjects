@@ -10,10 +10,8 @@ interface SidePanelProps {
   word: OriginalWord;
   strongs: StrongsEntry | null;
   onClose: () => void;
-  /** Called when the user clicks a concordance entry to navigate to that verse. */
   onNavigate: (osisRef: string, strongs: string) => void;
   onStudySaved: (study: Study) => void;
-  /** When true, renders inline (no sticky, full-width, border-top instead of border-left) */
   inline?: boolean;
 }
 
@@ -85,6 +83,10 @@ export function SidePanel({
   );
 }
 
+// ---------------------------------------------------------------------------
+// LexiconTab
+// ---------------------------------------------------------------------------
+
 function LexiconTab({ word, strongs }: { word: OriginalWord; strongs: StrongsEntry | null }) {
   if (!strongs) {
     return (
@@ -125,7 +127,6 @@ function LexiconTab({ word, strongs }: { word: OriginalWord; strongs: StrongsEnt
       {strongs.fullDef && (
         <div className="lexicon-fulldef">
           <h4>Full definition</h4>
-          {/* STEPBible uses HTML tags in fullDef */}
           <div
             className="lexicon-fulldef__content"
             dangerouslySetInnerHTML={{ __html: strongs.fullDef }}
@@ -146,18 +147,21 @@ interface ConcordanceTabProps {
   onNavigate: (osisRef: string, strongs: string) => void;
 }
 
+type ConcordanceView = 'list' | 'explorer';
+
 function ConcordanceTab({ word, strongs, onNavigate }: ConcordanceTabProps) {
-  // Cache keyed by Strong's number so switching tabs doesn't re-fetch
   const cache = useRef<Map<string, ConcordanceResponse>>(new Map());
   const [data, setData] = useState<ConcordanceResponse | null>(null);
   const [fetching, setFetching] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [view, setView] = useState<ConcordanceView>('list');
 
   useEffect(() => {
+    // Reset view when word changes
+    setView('list');
     if (!word.strongs) return;
 
     const id = word.strongs;
-
     if (cache.current.has(id)) {
       setData(cache.current.get(id)!);
       return;
@@ -182,9 +186,7 @@ function ConcordanceTab({ word, strongs, onNavigate }: ConcordanceTabProps) {
         if (!cancelled) setFetching(false);
       });
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [word.strongs]);
 
   if (!word.strongs) {
@@ -214,17 +216,39 @@ function ConcordanceTab({ word, strongs, onNavigate }: ConcordanceTabProps) {
   if (!data) return null;
 
   const lemmaLabel = strongs?.lemma ?? word.originalText;
-  const countLabel =
-    data.total > data.results.length
-      ? `${data.total}+ occurrences`
-      : `${data.total} occurrence${data.total === 1 ? '' : 's'}`;
+  const shown = data.results.length;
+  const countLabel = data.total > shown
+    ? `${data.total} occurrences (showing ${shown})`
+    : `${data.total} occurrence${data.total === 1 ? '' : 's'}`;
+
+  if (view === 'explorer') {
+    return (
+      <WordExplorer
+        lemma={lemmaLabel}
+        strongs={word.strongs}
+        results={data.results}
+        total={data.total}
+        onNavigate={onNavigate}
+        onBack={() => setView('list')}
+      />
+    );
+  }
 
   return (
     <div className="concordance-tab">
-      <p className="concordance-header">
-        {countLabel} of <span className="concordance-header__lemma">{lemmaLabel}</span>{' '}
+      <div className="concordance-header">
+        <span>{countLabel} of </span>
+        <button
+          className="concordance-header__lemma-btn"
+          onClick={() => setView('explorer')}
+          title="Browse all occurrences by book"
+        >
+          {lemmaLabel}
+        </button>
+        {' '}
         <span className="concordance-header__strongs">({word.strongs})</span>
-      </p>
+        <span className="concordance-header__explore-hint"> — tap word to explore</span>
+      </div>
       <ul className="concordance-list">
         {data.results.map((entry) => (
           <ConcordanceItem
@@ -238,6 +262,10 @@ function ConcordanceTab({ word, strongs, onNavigate }: ConcordanceTabProps) {
     </div>
   );
 }
+
+// ---------------------------------------------------------------------------
+// ConcordanceItem
+// ---------------------------------------------------------------------------
 
 interface ConcordanceItemProps {
   entry: ConcordanceEntry;
@@ -275,5 +303,108 @@ function ConcordanceItem({ entry, strongs, onNavigate }: ConcordanceItemProps) {
         </span>
       )}
     </li>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// WordExplorer — grouped by book view
+// ---------------------------------------------------------------------------
+
+interface WordExplorerProps {
+  lemma: string;
+  strongs: string;
+  results: ConcordanceEntry[];
+  total: number;
+  onNavigate: (osisRef: string, strongs: string) => void;
+  onBack: () => void;
+}
+
+interface BookGroup {
+  book: string;
+  chapters: Map<number, ConcordanceEntry[]>;
+}
+
+function groupByBook(results: ConcordanceEntry[]): BookGroup[] {
+  const bookMap = new Map<string, Map<number, ConcordanceEntry[]>>();
+  for (const entry of results) {
+    if (!bookMap.has(entry.book)) bookMap.set(entry.book, new Map());
+    const chMap = bookMap.get(entry.book)!;
+    if (!chMap.has(entry.chapter)) chMap.set(entry.chapter, []);
+    chMap.get(entry.chapter)!.push(entry);
+  }
+  return Array.from(bookMap.entries()).map(([book, chapters]) => ({ book, chapters }));
+}
+
+function WordExplorer({ lemma, strongs, results, total, onNavigate, onBack }: WordExplorerProps) {
+  const groups = groupByBook(results);
+  const [expandedBooks, setExpandedBooks] = useState<Set<string>>(() => {
+    // Start with first book expanded
+    const s = new Set<string>();
+    if (groups.length > 0) s.add(groups[0].book);
+    return s;
+  });
+
+  const toggleBook = (book: string) => {
+    setExpandedBooks((prev) => {
+      const next = new Set(prev);
+      if (next.has(book)) next.delete(book);
+      else next.add(book);
+      return next;
+    });
+  };
+
+  const shown = results.length;
+  const countNote = total > shown ? ` (${shown} of ${total} shown)` : '';
+
+  return (
+    <div className="word-explorer">
+      <div className="word-explorer__header">
+        <button className="word-explorer__back" onClick={onBack}>← List</button>
+        <div className="word-explorer__title">
+          <span className="word-explorer__lemma">{lemma}</span>
+          <span className="word-explorer__strongs">{strongs}</span>
+        </div>
+        <p className="word-explorer__count">{total} occurrence{total === 1 ? '' : 's'}{countNote}</p>
+      </div>
+      <div className="word-explorer__books">
+        {groups.map(({ book, chapters }) => {
+          const isOpen = expandedBooks.has(book);
+          const bookTotal = Array.from(chapters.values()).reduce((n, arr) => n + arr.length, 0);
+          return (
+            <div key={book} className="word-explorer__book">
+              <button
+                className={`word-explorer__book-btn${isOpen ? ' word-explorer__book-btn--open' : ''}`}
+                onClick={() => toggleBook(book)}
+              >
+                <span className="word-explorer__book-name">{book}</span>
+                <span className="word-explorer__book-count">{bookTotal}</span>
+                <span className="word-explorer__book-chevron">{isOpen ? '▴' : '▾'}</span>
+              </button>
+              {isOpen && (
+                <div className="word-explorer__chapters">
+                  {Array.from(chapters.entries()).map(([chapter, entries]) => (
+                    <div key={chapter} className="word-explorer__chapter">
+                      <span className="word-explorer__chapter-label">Ch. {chapter}</span>
+                      <div className="word-explorer__verses">
+                        {entries.map((entry) => (
+                          <button
+                            key={entry.verseRef}
+                            className="word-explorer__verse-btn"
+                            onClick={() => onNavigate(entry.verseRef, strongs)}
+                            title={entry.words.map(w => w.gloss).filter(Boolean).join(', ')}
+                          >
+                            v{entry.verse}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }

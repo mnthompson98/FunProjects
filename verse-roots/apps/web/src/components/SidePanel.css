@@ -169,10 +169,19 @@
   color: var(--text-muted);
   padding-bottom: 0.6rem;
   border-bottom: 1px solid var(--border-strong);
-  line-height: 1.4;
+  line-height: 1.6;
 }
-.concordance-header__lemma { font-family: var(--font-serif); color: var(--earth); font-size: 1.05rem; font-style: italic; font-weight: 300; }
+.concordance-header__lemma-btn {
+  background: none; border: none; padding: 0;
+  font-family: var(--font-serif); color: var(--earth); font-size: 1.05rem;
+  font-style: italic; font-weight: 300; cursor: pointer;
+  border-bottom: 1px dashed var(--earth);
+  transition: color var(--transition), border-color var(--transition);
+  line-height: 1.2;
+}
+.concordance-header__lemma-btn:hover { color: var(--accent); border-color: var(--accent); }
 .concordance-header__strongs { color: var(--text-subtle); font-size: 0.7rem; letter-spacing: 0.04em; }
+.concordance-header__explore-hint { font-size: 0.67rem; color: var(--text-subtle); font-style: italic; }
 
 .concordance-list {
   list-style: none; margin: 0; padding: 0;
@@ -229,4 +238,68 @@
     width: 100%; max-width: 100%; min-width: unset;
     border-left: none; border-top: 1px solid var(--border-strong);
   }
+}
+
+/* ── Word Explorer ── */
+.word-explorer { display: flex; flex-direction: column; gap: 0; }
+
+.word-explorer__header {
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-strong);
+  margin-bottom: 0.5rem;
+}
+
+.word-explorer__back {
+  background: none; border: none; padding: 0;
+  font-size: 0.72rem; color: var(--text-muted); cursor: pointer;
+  font-family: var(--font-sans); font-weight: 500; letter-spacing: 0.03em;
+  transition: color var(--transition);
+  margin-bottom: 0.35rem;
+  display: block;
+}
+.word-explorer__back:hover { color: var(--accent); }
+
+.word-explorer__title { display: flex; align-items: baseline; gap: 0.5rem; }
+.word-explorer__lemma { font-family: var(--font-serif); font-size: 1.4rem; font-weight: 300; font-style: italic; color: var(--earth); }
+.word-explorer__strongs { font-size: 0.7rem; color: var(--text-subtle); letter-spacing: 0.04em; }
+.word-explorer__count { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+.word-explorer__books { display: flex; flex-direction: column; gap: 1px; }
+
+.word-explorer__book { border-bottom: 1px solid var(--border); }
+.word-explorer__book:last-child { border-bottom: none; }
+
+.word-explorer__book-btn {
+  width: 100%; display: flex; align-items: center; gap: 0.6rem;
+  background: none; border: none; padding: 0.6rem 0;
+  text-align: left; cursor: pointer;
+  transition: color var(--transition);
+}
+.word-explorer__book-btn:hover { color: var(--accent); }
+.word-explorer__book-btn--open .word-explorer__book-name { color: var(--text); }
+
+.word-explorer__book-name { flex: 1; font-size: 0.82rem; font-weight: 500; color: var(--text-muted); letter-spacing: 0.01em; }
+.word-explorer__book-count {
+  font-size: 0.65rem; color: var(--text-subtle);
+  background: var(--surface2); border: 1px solid var(--border-strong);
+  border-radius: 99px; padding: 0.05rem 0.45rem;
+}
+.word-explorer__book-chevron { font-size: 0.5rem; color: var(--text-subtle); }
+
+.word-explorer__chapters { padding: 0 0 0.5rem 0.25rem; display: flex; flex-direction: column; gap: 0.35rem; }
+
+.word-explorer__chapter { display: flex; align-items: flex-start; gap: 0.6rem; flex-wrap: wrap; }
+.word-explorer__chapter-label { font-size: 0.65rem; color: var(--text-subtle); letter-spacing: 0.04em; min-width: 3.5rem; padding-top: 0.35rem; }
+
+.word-explorer__verses { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+
+.word-explorer__verse-btn {
+  background: var(--surface2); border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm); color: var(--text-muted);
+  font-size: 0.72rem; font-family: var(--font-sans); font-weight: 500;
+  padding: 0.2rem 0.5rem; cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+.word-explorer__verse-btn:hover {
+  background: var(--accent-light); color: var(--accent); border-color: var(--accent-dim);
 }
