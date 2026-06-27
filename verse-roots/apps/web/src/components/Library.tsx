@@ -14,9 +14,12 @@ const ALL_BOOKS = [
   '1 John','2 John','3 John','Jude','Revelation',
 ];
 import type { Study } from '../study/types';
-import { getAllStudies, deleteStudy, saveStudy } from '../study/db';
+import type { StudyGroup } from '../study/types';
+import { getAllStudies, deleteStudy, saveStudy, getAllGroups, saveGroup, deleteGroup } from '../study/db';
 import { formatRef } from '../utils/formatRef';
 import './Library.css';
+
+const GROUP_COLORS = ['#C9954A','#4A7FA5','#5A8A6E','#A84848','#8B6F9B','#4A8FA5'];
 
 interface LibraryProps {
   onOpen: (verseRef: string) => void;
@@ -47,6 +50,10 @@ function getContextSnippet(study: Study): string {
 
 export function Library({ onOpen, onClose }: LibraryProps) {
   const [studies, setStudies] = useState<Study[]>([]);
+  const [groups, setGroups] = useState<StudyGroup[]>([]);
+  const [groupFilter, setGroupFilter] = useState('');
+  const [newGroupName, setNewGroupName] = useState('');
+  const [showGroupInput, setShowGroupInput] = useState(false);
   const [search, setSearch] = useState('');
   const [bookFilter, setBookFilter] = useState('');
   const [wordsFilter, setWordsFilter] = useState('');
@@ -55,6 +62,7 @@ export function Library({ onOpen, onClose }: LibraryProps) {
 
   useEffect(() => {
     getAllStudies().then(setStudies);
+    getAllGroups().then(setGroups);
   }, []);
 
   const handleExport = () => {
@@ -86,6 +94,37 @@ export function Library({ onOpen, onClose }: LibraryProps) {
     if (importRef.current) importRef.current.value = '';
   };
 
+  const handleCreateGroup = async () => {
+    const name = newGroupName.trim();
+    if (!name) return;
+    const group: StudyGroup = {
+      id: crypto.randomUUID(),
+      name,
+      color: GROUP_COLORS[groups.length % GROUP_COLORS.length],
+      createdAt: Date.now(),
+    };
+    await saveGroup(group);
+    setGroups((prev) => [...prev, group]);
+    setNewGroupName('');
+    setShowGroupInput(false);
+  };
+
+  const handleDeleteGroup = async (id: string) => {
+    await deleteGroup(id);
+    // Un-assign studies in this group
+    const affected = studies.filter((s) => s.groupId === id);
+    await Promise.all(affected.map((s) => saveStudy({ ...s, groupId: null })));
+    setStudies((prev) => prev.map((s) => s.groupId === id ? { ...s, groupId: null } : s));
+    setGroups((prev) => prev.filter((g) => g.id !== id));
+    if (groupFilter === id) setGroupFilter('');
+  };
+
+  const handleAssignGroup = async (study: Study, groupId: string | null) => {
+    const updated = { ...study, groupId, updatedAt: Date.now() };
+    await saveStudy(updated);
+    setStudies((prev) => prev.map((s) => s.id === study.id ? updated : s));
+  };
+
   const words = useMemo(() => {
     const set = new Set<string>();
     studies.forEach((s) => {
@@ -98,6 +137,13 @@ export function Library({ onOpen, onClose }: LibraryProps) {
     return studies.filter((s) => {
       if (bookFilter && getBookFromRef(s.verseRef) !== bookFilter) return false;
       if (wordsFilter && s.focusStrongs !== wordsFilter) return false;
+      if (groupFilter) {
+        if (groupFilter === '__none__') {
+          if (s.groupId) return false;
+        } else {
+          if (s.groupId !== groupFilter) return false;
+        }
+      }
       if (search) {
         const q = search.toLowerCase();
         const inTitle = s.title.toLowerCase().includes(q);
@@ -106,7 +152,7 @@ export function Library({ onOpen, onClose }: LibraryProps) {
       }
       return true;
     });
-  }, [studies, search, bookFilter, wordsFilter]);
+  }, [studies, search, bookFilter, wordsFilter, groupFilter]);
 
   const handleOpen = (study: Study) => {
     onOpen(study.verseRef);
@@ -129,6 +175,9 @@ export function Library({ onOpen, onClose }: LibraryProps) {
           </button>
           <h2 className="library-title">My Study Library</h2>
           <div className="library-header-actions">
+            <button className="library-action-btn" onClick={() => setShowGroupInput((v) => !v)} title="Manage groups">
+              Groups
+            </button>
             <button className="library-action-btn" onClick={handleExport} title="Export library as JSON">
               Export
             </button>
@@ -145,6 +194,38 @@ export function Library({ onOpen, onClose }: LibraryProps) {
           </div>
         </div>
         {importError && <p className="library-import-error">{importError}</p>}
+        {showGroupInput && (
+          <div className="library-group-manager">
+            <div className="library-group-manager__create">
+              <input
+                className="library-group-input"
+                placeholder="New group name…"
+                value={newGroupName}
+                onChange={(e) => setNewGroupName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleCreateGroup(); }}
+                autoFocus
+              />
+              <button className="library-action-btn" onClick={handleCreateGroup} disabled={!newGroupName.trim()}>
+                Create
+              </button>
+            </div>
+            {groups.length > 0 && (
+              <div className="library-group-manager__list">
+                {groups.map((g) => (
+                  <div key={g.id} className="library-group-manager__item">
+                    <span className="library-group-manager__dot" style={{ background: g.color }} />
+                    <span className="library-group-manager__name">{g.name}</span>
+                    <button
+                      className="library-group-manager__delete"
+                      onClick={() => handleDeleteGroup(g.id)}
+                      aria-label={`Delete group ${g.name}`}
+                    >×</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="library-filters">
           <input
@@ -182,6 +263,31 @@ export function Library({ onOpen, onClose }: LibraryProps) {
           </div>
         </div>
 
+        {/* Groups filter bar */}
+        {groups.length > 0 && (
+          <div className="library-groups">
+            <button
+              className={`library-group-pill${groupFilter === '' ? ' library-group-pill--active' : ''}`}
+              onClick={() => setGroupFilter('')}
+            >All</button>
+            {groups.map((g) => (
+              <button
+                key={g.id}
+                className={`library-group-pill${groupFilter === g.id ? ' library-group-pill--active' : ''}`}
+                style={{ '--group-color': g.color } as React.CSSProperties}
+                onClick={() => setGroupFilter(g.id)}
+              >
+                <span className="library-group-pill__dot" />
+                {g.name}
+              </button>
+            ))}
+            <button
+              className={`library-group-pill${groupFilter === '__none__' ? ' library-group-pill--active' : ''}`}
+              onClick={() => setGroupFilter('__none__')}
+            >Ungrouped</button>
+          </div>
+        )}
+
         <div className="library-list">
           {filtered.length === 0 ? (
             <p className="library-empty">
@@ -194,8 +300,10 @@ export function Library({ onOpen, onClose }: LibraryProps) {
               <StudyCard
                 key={study.id}
                 study={study}
+                groups={groups}
                 onClick={() => handleOpen(study)}
                 onDelete={(e) => handleDelete(e, study)}
+                onAssignGroup={(gId) => handleAssignGroup(study, gId)}
               />
             ))
           )}
@@ -207,13 +315,17 @@ export function Library({ onOpen, onClose }: LibraryProps) {
 
 interface StudyCardProps {
   study: Study;
+  groups: StudyGroup[];
   onClick: () => void;
   onDelete: (e: React.MouseEvent) => void;
+  onAssignGroup: (groupId: string | null) => void;
 }
 
-function StudyCard({ study, onClick, onDelete }: StudyCardProps) {
+function StudyCard({ study, groups, onClick, onDelete, onAssignGroup }: StudyCardProps) {
   const snippet = getContextSnippet(study);
   const wordLabel = [study.focusStrongs, study.focusWord].filter(Boolean).join(' ');
+  const currentGroup = groups.find((g) => g.id === study.groupId);
+  const [showGroupSelect, setShowGroupSelect] = useState(false);
 
   return (
     <div className="study-card" role="button" tabIndex={0} onClick={onClick}
@@ -225,6 +337,36 @@ function StudyCard({ study, onClick, onDelete }: StudyCardProps) {
       <div className="study-card__title">{study.title}</div>
       {wordLabel && <div className="study-card__word">{wordLabel}</div>}
       {snippet && <div className="study-card__snippet">"{snippet}"</div>}
+      <div className="study-card__footer">
+        <button
+          className="study-card__group-badge"
+          style={currentGroup ? { '--group-color': currentGroup.color } as React.CSSProperties : undefined}
+          onClick={(e) => { e.stopPropagation(); setShowGroupSelect((v) => !v); }}
+          title="Assign to group"
+        >
+          {currentGroup ? (
+            <><span className="study-card__group-dot" />{currentGroup.name}</>
+          ) : (
+            <span className="study-card__group-none">+ Group</span>
+          )}
+        </button>
+      </div>
+      {showGroupSelect && (
+        <div className="study-card__group-select" onClick={(e) => e.stopPropagation()}>
+          <button className="study-card__group-option" onClick={() => { onAssignGroup(null); setShowGroupSelect(false); }}>
+            No group
+          </button>
+          {groups.map((g) => (
+            <button
+              key={g.id}
+              className={`study-card__group-option${study.groupId === g.id ? ' study-card__group-option--active' : ''}`}
+              onClick={() => { onAssignGroup(g.id); setShowGroupSelect(false); }}
+            >
+              <span className="study-card__group-dot" style={{ background: g.color }} />{g.name}
+            </button>
+          ))}
+        </div>
+      )}
       <button
         className="study-card__delete"
         onClick={onDelete}

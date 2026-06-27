@@ -19,19 +19,27 @@
 }
 
 .app-back-btn {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 0.78rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--accent-light);
+  border: 1px solid var(--accent-dim);
+  color: var(--accent);
+  font-size: 0.8rem;
   font-family: var(--font-sans);
-  font-weight: 500;
-  padding: 0;
-  letter-spacing: 0.02em;
+  font-weight: 600;
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.03em;
   cursor: pointer;
   width: fit-content;
-  transition: color var(--transition);
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
 }
-.app-back-btn:hover { color: var(--accent); }
+.app-back-btn:hover {
+  background: var(--accent);
+  color: #0F0D0B;
+  border-color: var(--accent);
+}
 
 /* ── Main workspace ── */
 .app-workspace {

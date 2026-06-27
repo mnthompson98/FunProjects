@@ -39,6 +39,20 @@
   font-style: italic;
 }
 
+/* When the original word is clickable (has strongs → opens Word Explorer) */
+.side-panel__original--btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-bottom: 1px dashed rgba(196,169,107,0.5);
+  transition: color var(--transition), border-color var(--transition);
+}
+.side-panel__original--btn:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
 .side-panel__strongs {
   font-size: 0.7rem;
   color: var(--text-subtle);
@@ -171,17 +185,16 @@
   border-bottom: 1px solid var(--border-strong);
   line-height: 1.6;
 }
-.concordance-header__lemma-btn {
-  background: none; border: none; padding: 0;
-  font-family: var(--font-serif); color: var(--earth); font-size: 1.05rem;
-  font-style: italic; font-weight: 300; cursor: pointer;
-  border-bottom: 1px dashed var(--earth);
-  transition: color var(--transition), border-color var(--transition);
-  line-height: 1.2;
-}
-.concordance-header__lemma-btn:hover { color: var(--accent); border-color: var(--accent); }
+.concordance-header__lemma { font-family: var(--font-serif); color: var(--earth); font-size: 1.05rem; font-style: italic; font-weight: 300; }
 .concordance-header__strongs { color: var(--text-subtle); font-size: 0.7rem; letter-spacing: 0.04em; }
-.concordance-header__explore-hint { font-size: 0.67rem; color: var(--text-subtle); font-style: italic; }
+.concordance-header__explore-btn {
+  display: block; margin-top: 0.35rem;
+  background: none; border: none; padding: 0;
+  font-size: 0.72rem; color: var(--accent); cursor: pointer;
+  font-family: var(--font-sans); font-weight: 500; letter-spacing: 0.03em;
+  transition: opacity var(--transition);
+}
+.concordance-header__explore-btn:hover { opacity: 0.75; }
 
 .concordance-list {
   list-style: none; margin: 0; padding: 0;

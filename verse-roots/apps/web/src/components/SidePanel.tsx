@@ -26,12 +26,65 @@ export function SidePanel({
   inline = false,
 }: SidePanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>('lexicon');
+  const [showExplorer, setShowExplorer] = useState(false);
+
+  // Concordance data lifted here so explorer can be opened from the header
+  const concordanceCache = useRef<Map<string, ConcordanceResponse>>(new Map());
+  const [concordanceData, setConcordanceData] = useState<ConcordanceResponse | null>(null);
+  const [concordanceFetching, setConcordanceFetching] = useState(false);
+  const [concordanceError, setConcordanceError] = useState<string | null>(null);
+
+  // Reset explorer + concordance whenever the selected word changes
+  useEffect(() => {
+    setShowExplorer(false);
+    setConcordanceData(null);
+    setConcordanceFetching(false);
+    setConcordanceError(null);
+  }, [word.strongs]);
+
+  // Fetch concordance when tab is opened or when explorer is triggered from header
+  const ensureConcordance = () => {
+    if (!word.strongs) return;
+    const id = word.strongs;
+    if (concordanceCache.current.has(id)) {
+      setConcordanceData(concordanceCache.current.get(id)!);
+      return;
+    }
+    if (concordanceFetching) return;
+    setConcordanceFetching(true);
+    getConcordance(id)
+      .then((json) => {
+        concordanceCache.current.set(id, json);
+        setConcordanceData(json);
+      })
+      .catch((err: unknown) => {
+        setConcordanceError(err instanceof Error ? err.message : String(err));
+      })
+      .finally(() => setConcordanceFetching(false));
+  };
+
+  const handleOpenExplorer = () => {
+    ensureConcordance();
+    setShowExplorer(true);
+  };
+
+  const lemmaLabel = strongs?.lemma ?? word.originalText;
 
   return (
     <aside className={`side-panel${inline ? ' side-panel--inline' : ''}`}>
       <div className="side-panel__header">
         <div className="side-panel__word-info">
-          <span className="side-panel__original">{word.originalText}</span>
+          {word.strongs ? (
+            <button
+              className="side-panel__original side-panel__original--btn"
+              onClick={handleOpenExplorer}
+              title="Explore all occurrences by book"
+            >
+              {word.originalText}
+            </button>
+          ) : (
+            <span className="side-panel__original">{word.originalText}</span>
+          )}
           {word.strongs && (
             <span className="side-panel__strongs">{word.strongs}</span>
           )}
@@ -41,44 +94,68 @@ export function SidePanel({
         </button>
       </div>
 
-      <div className="side-panel__tabs">
-        <button
-          className={`tab-btn${activeTab === 'lexicon' ? ' tab-btn--active' : ''}`}
-          onClick={() => setActiveTab('lexicon')}
-        >
-          Lexicon
-        </button>
-        <button
-          className={`tab-btn${activeTab === 'concordance' ? ' tab-btn--active' : ''}`}
-          onClick={() => setActiveTab('concordance')}
-        >
-          Concordance
-        </button>
-        <button
-          className={`tab-btn${activeTab === 'study' ? ' tab-btn--active' : ''}`}
-          onClick={() => setActiveTab('study')}
-        >
-          Study
-        </button>
-      </div>
-
-      <div className="side-panel__body">
-        {activeTab === 'lexicon' && (
-          <LexiconTab word={word} strongs={strongs} />
-        )}
-        {activeTab === 'concordance' && (
-          <ConcordanceTab word={word} strongs={strongs} onNavigate={onNavigate} />
-        )}
-        {activeTab === 'study' && (
-          <StudyTab
-            verseRef={word.verseRef}
-            focusStrongs={word.strongs}
-            focusWord={word.originalText}
-            focusLemma={strongs?.lemma ?? null}
-            onStudySaved={onStudySaved}
+      {showExplorer ? (
+        <div className="side-panel__body">
+          <WordExplorer
+            lemma={lemmaLabel}
+            strongs={word.strongs!}
+            data={concordanceData}
+            fetching={concordanceFetching}
+            fetchError={concordanceError}
+            onNavigate={onNavigate}
+            onBack={() => setShowExplorer(false)}
           />
-        )}
-      </div>
+        </div>
+      ) : (
+        <>
+          <div className="side-panel__tabs">
+            <button
+              className={`tab-btn${activeTab === 'lexicon' ? ' tab-btn--active' : ''}`}
+              onClick={() => setActiveTab('lexicon')}
+            >
+              Lexicon
+            </button>
+            <button
+              className={`tab-btn${activeTab === 'concordance' ? ' tab-btn--active' : ''}`}
+              onClick={() => { setActiveTab('concordance'); ensureConcordance(); }}
+            >
+              Concordance
+            </button>
+            <button
+              className={`tab-btn${activeTab === 'study' ? ' tab-btn--active' : ''}`}
+              onClick={() => setActiveTab('study')}
+            >
+              Study
+            </button>
+          </div>
+
+          <div className="side-panel__body">
+            {activeTab === 'lexicon' && (
+              <LexiconTab word={word} strongs={strongs} />
+            )}
+            {activeTab === 'concordance' && (
+              <ConcordanceTab
+                word={word}
+                strongs={strongs}
+                data={concordanceData}
+                fetching={concordanceFetching}
+                fetchError={concordanceError}
+                onNavigate={onNavigate}
+                onOpenExplorer={handleOpenExplorer}
+              />
+            )}
+            {activeTab === 'study' && (
+              <StudyTab
+                verseRef={word.verseRef}
+                focusStrongs={word.strongs}
+                focusWord={word.originalText}
+                focusLemma={strongs?.lemma ?? null}
+                onStudySaved={onStudySaved}
+              />
+            )}
+          </div>
+        </>
+      )}
     </aside>
   );
 }
@@ -138,57 +215,20 @@ function LexiconTab({ word, strongs }: { word: OriginalWord; strongs: StrongsEnt
 }
 
 // ---------------------------------------------------------------------------
-// ConcordanceTab
+// ConcordanceTab — receives lifted data, no longer fetches itself
 // ---------------------------------------------------------------------------
 
 interface ConcordanceTabProps {
   word: OriginalWord;
   strongs: StrongsEntry | null;
+  data: ConcordanceResponse | null;
+  fetching: boolean;
+  fetchError: string | null;
   onNavigate: (osisRef: string, strongs: string) => void;
+  onOpenExplorer: () => void;
 }
 
-type ConcordanceView = 'list' | 'explorer';
-
-function ConcordanceTab({ word, strongs, onNavigate }: ConcordanceTabProps) {
-  const cache = useRef<Map<string, ConcordanceResponse>>(new Map());
-  const [data, setData] = useState<ConcordanceResponse | null>(null);
-  const [fetching, setFetching] = useState(false);
-  const [fetchError, setFetchError] = useState<string | null>(null);
-  const [view, setView] = useState<ConcordanceView>('list');
-
-  useEffect(() => {
-    // Reset view when word changes
-    setView('list');
-    if (!word.strongs) return;
-
-    const id = word.strongs;
-    if (cache.current.has(id)) {
-      setData(cache.current.get(id)!);
-      return;
-    }
-
-    let cancelled = false;
-    setFetching(true);
-    setFetchError(null);
-    setData(null);
-
-    getConcordance(id)
-      .then((json: ConcordanceResponse) => {
-        if (cancelled) return;
-        cache.current.set(id, json);
-        setData(json);
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return;
-        setFetchError(err instanceof Error ? err.message : String(err));
-      })
-      .finally(() => {
-        if (!cancelled) setFetching(false);
-      });
-
-    return () => { cancelled = true; };
-  }, [word.strongs]);
-
+function ConcordanceTab({ word, strongs, data, fetching, fetchError, onNavigate, onOpenExplorer }: ConcordanceTabProps) {
   if (!word.strongs) {
     return (
       <div className="concordance-tab">
@@ -221,33 +261,14 @@ function ConcordanceTab({ word, strongs, onNavigate }: ConcordanceTabProps) {
     ? `${data.total} occurrences (showing ${shown})`
     : `${data.total} occurrence${data.total === 1 ? '' : 's'}`;
 
-  if (view === 'explorer') {
-    return (
-      <WordExplorer
-        lemma={lemmaLabel}
-        strongs={word.strongs}
-        results={data.results}
-        total={data.total}
-        onNavigate={onNavigate}
-        onBack={() => setView('list')}
-      />
-    );
-  }
-
   return (
     <div className="concordance-tab">
       <div className="concordance-header">
-        <span>{countLabel} of </span>
-        <button
-          className="concordance-header__lemma-btn"
-          onClick={() => setView('explorer')}
-          title="Browse all occurrences by book"
-        >
-          {lemmaLabel}
+        <span>{countLabel} of <span className="concordance-header__lemma">{lemmaLabel}</span>{' '}
+        <span className="concordance-header__strongs">({word.strongs})</span></span>
+        <button className="concordance-header__explore-btn" onClick={onOpenExplorer}>
+          Browse by book →
         </button>
-        {' '}
-        <span className="concordance-header__strongs">({word.strongs})</span>
-        <span className="concordance-header__explore-hint"> — tap word to explore</span>
       </div>
       <ul className="concordance-list">
         {data.results.map((entry) => (
@@ -307,14 +328,15 @@ function ConcordanceItem({ entry, strongs, onNavigate }: ConcordanceItemProps) {
 }
 
 // ---------------------------------------------------------------------------
-// WordExplorer — grouped by book view
+// WordExplorer — grouped by book, rendered in panel body
 // ---------------------------------------------------------------------------
 
 interface WordExplorerProps {
   lemma: string;
   strongs: string;
-  results: ConcordanceEntry[];
-  total: number;
+  data: ConcordanceResponse | null;
+  fetching: boolean;
+  fetchError: string | null;
   onNavigate: (osisRef: string, strongs: string) => void;
   onBack: () => void;
 }
@@ -335,14 +357,21 @@ function groupByBook(results: ConcordanceEntry[]): BookGroup[] {
   return Array.from(bookMap.entries()).map(([book, chapters]) => ({ book, chapters }));
 }
 
-function WordExplorer({ lemma, strongs, results, total, onNavigate, onBack }: WordExplorerProps) {
-  const groups = groupByBook(results);
+function WordExplorer({ lemma, strongs, data, fetching, fetchError, onNavigate, onBack }: WordExplorerProps) {
+  const groups = data ? groupByBook(data.results) : [];
   const [expandedBooks, setExpandedBooks] = useState<Set<string>>(() => {
-    // Start with first book expanded
     const s = new Set<string>();
     if (groups.length > 0) s.add(groups[0].book);
     return s;
   });
+
+  // Expand first book once data loads
+  useEffect(() => {
+    if (data && data.results.length > 0) {
+      const first = data.results[0].book;
+      setExpandedBooks((prev) => prev.size === 0 ? new Set([first]) : prev);
+    }
+  }, [data]);
 
   const toggleBook = (book: string) => {
     setExpandedBooks((prev) => {
@@ -353,58 +382,65 @@ function WordExplorer({ lemma, strongs, results, total, onNavigate, onBack }: Wo
     });
   };
 
-  const shown = results.length;
+  const shown = data?.results.length ?? 0;
+  const total = data?.total ?? 0;
   const countNote = total > shown ? ` (${shown} of ${total} shown)` : '';
 
   return (
     <div className="word-explorer">
       <div className="word-explorer__header">
-        <button className="word-explorer__back" onClick={onBack}>← List</button>
+        <button className="word-explorer__back" onClick={onBack}>← Concordance</button>
         <div className="word-explorer__title">
           <span className="word-explorer__lemma">{lemma}</span>
           <span className="word-explorer__strongs">{strongs}</span>
         </div>
-        <p className="word-explorer__count">{total} occurrence{total === 1 ? '' : 's'}{countNote}</p>
+        {data && <p className="word-explorer__count">{total} occurrence{total === 1 ? '' : 's'}{countNote}</p>}
       </div>
-      <div className="word-explorer__books">
-        {groups.map(({ book, chapters }) => {
-          const isOpen = expandedBooks.has(book);
-          const bookTotal = Array.from(chapters.values()).reduce((n, arr) => n + arr.length, 0);
-          return (
-            <div key={book} className="word-explorer__book">
-              <button
-                className={`word-explorer__book-btn${isOpen ? ' word-explorer__book-btn--open' : ''}`}
-                onClick={() => toggleBook(book)}
-              >
-                <span className="word-explorer__book-name">{book}</span>
-                <span className="word-explorer__book-count">{bookTotal}</span>
-                <span className="word-explorer__book-chevron">{isOpen ? '▴' : '▾'}</span>
-              </button>
-              {isOpen && (
-                <div className="word-explorer__chapters">
-                  {Array.from(chapters.entries()).map(([chapter, entries]) => (
-                    <div key={chapter} className="word-explorer__chapter">
-                      <span className="word-explorer__chapter-label">Ch. {chapter}</span>
-                      <div className="word-explorer__verses">
-                        {entries.map((entry) => (
-                          <button
-                            key={entry.verseRef}
-                            className="word-explorer__verse-btn"
-                            onClick={() => onNavigate(entry.verseRef, strongs)}
-                            title={entry.words.map(w => w.gloss).filter(Boolean).join(', ')}
-                          >
-                            v{entry.verse}
-                          </button>
-                        ))}
+
+      {fetching && <div className="concordance-spinner" aria-label="Loading" />}
+      {fetchError && <p className="concordance-error">{fetchError}</p>}
+
+      {data && (
+        <div className="word-explorer__books">
+          {groups.map(({ book, chapters }) => {
+            const isOpen = expandedBooks.has(book);
+            const bookTotal = Array.from(chapters.values()).reduce((n, arr) => n + arr.length, 0);
+            return (
+              <div key={book} className="word-explorer__book">
+                <button
+                  className={`word-explorer__book-btn${isOpen ? ' word-explorer__book-btn--open' : ''}`}
+                  onClick={() => toggleBook(book)}
+                >
+                  <span className="word-explorer__book-name">{book}</span>
+                  <span className="word-explorer__book-count">{bookTotal}</span>
+                  <span className="word-explorer__book-chevron">{isOpen ? '▴' : '▾'}</span>
+                </button>
+                {isOpen && (
+                  <div className="word-explorer__chapters">
+                    {Array.from(chapters.entries()).map(([chapter, entries]) => (
+                      <div key={chapter} className="word-explorer__chapter">
+                        <span className="word-explorer__chapter-label">Ch. {chapter}</span>
+                        <div className="word-explorer__verses">
+                          {entries.map((entry) => (
+                            <button
+                              key={entry.verseRef}
+                              className="word-explorer__verse-btn"
+                              onClick={() => onNavigate(entry.verseRef, strongs)}
+                              title={entry.words.map(w => w.gloss).filter(Boolean).join(', ')}
+                            >
+                              v{entry.verse}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

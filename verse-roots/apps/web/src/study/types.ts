@@ -25,4 +25,12 @@ export interface Study {
   createdAt: number;    // Date.now()
   updatedAt: number;
   tags: string[];       // user-added tags, for future search
+  groupId?: string | null;
+}
+
+export interface StudyGroup {
+  id: string;
+  name: string;
+  color: string;
+  createdAt: number;
 }

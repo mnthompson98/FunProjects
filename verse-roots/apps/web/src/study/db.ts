@@ -1,7 +1,7 @@
-import type { Study } from './types';
+import type { Study, StudyGroup } from './types';
 
 const DB_NAME = 'verse-roots-studies';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_NAME = 'studies';
 
 let dbPromise: Promise<IDBDatabase> | null = null;
@@ -19,6 +19,9 @@ export function openStudyDb(): Promise<IDBDatabase> {
         store.createIndex('verseRef',     'verseRef',     { unique: false });
         store.createIndex('updatedAt',    'updatedAt',    { unique: false });
         store.createIndex('focusStrongs', 'focusStrongs', { unique: false });
+      }
+      if (event.oldVersion < 2) {
+        db.createObjectStore('groups', { keyPath: 'id' });
       }
     };
 
@@ -128,6 +131,39 @@ export async function deleteStudy(id: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readwrite');
     const store = tx.objectStore(STORE_NAME);
+    const req = store.delete(id);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+
+export async function getAllGroups(): Promise<StudyGroup[]> {
+  const db = await openStudyDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('groups', 'readonly');
+    const store = tx.objectStore('groups');
+    const req = store.getAll();
+    req.onsuccess = () => resolve((req.result as StudyGroup[]).sort((a, b) => a.createdAt - b.createdAt));
+    req.onerror = () => reject(req.error);
+  });
+}
+
+export async function saveGroup(group: StudyGroup): Promise<void> {
+  const db = await openStudyDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('groups', 'readwrite');
+    const store = tx.objectStore('groups');
+    const req = store.put(group);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+
+export async function deleteGroup(id: string): Promise<void> {
+  const db = await openStudyDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('groups', 'readwrite');
+    const store = tx.objectStore('groups');
     const req = store.delete(id);
     req.onsuccess = () => resolve();
     req.onerror = () => reject(req.error);

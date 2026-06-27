@@ -50,6 +50,8 @@ export function StudyTab({
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fadeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasPersisted = useRef(false);
+  const studyRef = useRef(study);
+  const isDirtyRef = useRef(isDirty);
 
   // Load existing studies when verseRef changes
   useEffect(() => {
@@ -95,9 +97,25 @@ export function StudyTab({
     [onStudySaved],
   );
 
+  // Flush pending save on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current && isDirtyRef.current) {
+        clearTimeout(debounceTimer.current);
+        saveStudy(studyRef.current).catch(() => {});
+      }
+    };
+  }, []); // empty deps = only on unmount
+
+  // Keep refs in sync
+  useEffect(() => { studyRef.current = study; }, [study]);
+  useEffect(() => { isDirtyRef.current = isDirty; }, [isDirty]);
+
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const updated: Study = { ...study, title: e.target.value, updatedAt: Date.now() };
     setStudy(updated);
+    studyRef.current = updated;
+    isDirtyRef.current = true;
     setIsDirty(true);
     triggerAutosave(updated);
   };
@@ -111,6 +129,8 @@ export function StudyTab({
       ),
     };
     setStudy(updated);
+    studyRef.current = updated;
+    isDirtyRef.current = true;
     if (!isDirty) setIsDirty(true);
     triggerAutosave(updated);
   };

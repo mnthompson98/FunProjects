@@ -96,3 +96,87 @@
 }
 .study-card:hover .study-card__delete, .study-card:focus .study-card__delete { opacity: 1; }
 .study-card__delete:hover { color: var(--error); background: rgba(168,72,72,0.12); }
+
+/* Groups filter bar */
+.library-groups {
+  display: flex; flex-wrap: wrap; gap: 0.4rem;
+  padding: 0.6rem 1.5rem; border-bottom: 1px solid var(--border-strong);
+}
+
+.library-group-pill {
+  display: flex; align-items: center; gap: 0.35rem;
+  background: none; border: 1px solid var(--border-strong);
+  border-radius: 99px; color: var(--text-muted);
+  font-size: 0.73rem; font-family: var(--font-sans); font-weight: 500;
+  padding: 0.2rem 0.7rem; cursor: pointer;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+.library-group-pill:hover { color: var(--text); border-color: var(--accent-dim); }
+.library-group-pill--active {
+  color: var(--accent); border-color: var(--accent-dim); background: var(--accent-light);
+}
+.library-group-pill__dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--group-color, var(--accent));
+  flex-shrink: 0;
+}
+
+/* Group manager panel */
+.library-group-manager {
+  padding: 0.75rem 1.5rem; border-bottom: 1px solid var(--border-strong);
+  background: var(--surface2); display: flex; flex-direction: column; gap: 0.6rem;
+}
+.library-group-manager__create { display: flex; gap: 0.4rem; }
+.library-group-input {
+  flex: 1; background: var(--bg); border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm); color: var(--text); font-size: 0.82rem;
+  padding: 0.35rem 0.65rem; outline: none; font-family: var(--font-sans);
+  transition: border-color var(--transition);
+}
+.library-group-input:focus { border-color: var(--accent-dim); }
+.library-group-manager__list { display: flex; flex-direction: column; gap: 0.25rem; }
+.library-group-manager__item {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.3rem 0; border-bottom: 1px solid var(--border);
+}
+.library-group-manager__item:last-child { border-bottom: none; }
+.library-group-manager__dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.library-group-manager__name { flex: 1; font-size: 0.82rem; color: var(--text-muted); }
+.library-group-manager__delete {
+  background: none; border: none; color: var(--text-subtle);
+  font-size: 1rem; line-height: 1; padding: 0.15rem 0.3rem;
+  border-radius: var(--radius-sm); cursor: pointer;
+  transition: color var(--transition), background var(--transition);
+}
+.library-group-manager__delete:hover { color: var(--error); background: rgba(168,72,72,0.1); }
+
+/* Study card group section */
+.study-card__footer { margin-top: 0.35rem; }
+
+.study-card__group-badge {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  background: none; border: 1px solid var(--border-strong);
+  border-radius: 99px; padding: 0.12rem 0.5rem;
+  font-size: 0.67rem; font-family: var(--font-sans); color: var(--text-subtle);
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+.study-card__group-badge:hover { color: var(--accent); border-color: var(--accent-dim); background: var(--accent-light); }
+.study-card__group-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--group-color, var(--accent)); }
+.study-card__group-none { color: var(--text-subtle); }
+
+.study-card__group-select {
+  position: absolute; left: 1.1rem; bottom: calc(100% + 4px);
+  background: var(--surface2); border: 1px solid var(--border-strong);
+  border-radius: var(--radius); box-shadow: var(--shadow-lg);
+  z-index: 10; min-width: 140px; overflow: hidden;
+}
+.study-card__group-option {
+  display: flex; align-items: center; gap: 0.45rem; width: 100%;
+  background: none; border: none; border-bottom: 1px solid var(--border);
+  padding: 0.5rem 0.75rem; font-size: 0.78rem; color: var(--text-muted);
+  font-family: var(--font-sans); cursor: pointer; text-align: left;
+  transition: background var(--transition), color var(--transition);
+}
+.study-card__group-option:last-child { border-bottom: none; }
+.study-card__group-option:hover { background: var(--surface3); color: var(--text); }
+.study-card__group-option--active { color: var(--accent); }
