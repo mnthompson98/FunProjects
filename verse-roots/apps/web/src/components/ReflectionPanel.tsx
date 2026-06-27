@@ -5,7 +5,7 @@ import { saveStudy, deleteStudy } from '../study/db';
 import { formatPassageRef } from '../utils/formatRef';
 import './ReflectionPanel.css';
 
-const DEFAULT_METHOD = 'inductive';
+const DEFAULT_METHOD = 'four-rs';
 
 interface ReflectionPanelProps {
   selection?: ReflectionSelection; // new reflection

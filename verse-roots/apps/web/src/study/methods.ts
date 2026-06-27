@@ -24,6 +24,19 @@ export interface StudyMethod {
 
 export const STUDY_METHODS: StudyMethod[] = [
   {
+    id: 'four-rs',
+    name: 'The Four Rs',
+    blurb: 'Read slowly and listen: Read, Reflect, Respond, Rest.',
+    attribution: "Adapted from The Navigators' “Four Rs of Bible Study,” excerpted from MaryKate Morse, Lifelong Leadership (NavPress, 2020). Used by permission.",
+    sourceUrl: 'https://www.navigators.org/resource/bible-study-tools/',
+    sections: [
+      { id: 'read',    label: 'Read',    hint: 'Read the passage slowly. What word or phrase stands out to you?' },
+      { id: 'reflect', label: 'Reflect', hint: 'How does this passage speak to your life today?' },
+      { id: 'respond', label: 'Respond', hint: 'Write a short prayer of response.' },
+      { id: 'rest',    label: 'Rest',    hint: 'Receive it quietly. What truth will you rest in?' },
+    ],
+  },
+  {
     id: 'inductive',
     name: 'Inductive Study',
     blurb: 'Observe, interpret, and apply a passage in seven steps.',
@@ -37,19 +50,6 @@ export const STUDY_METHODS: StudyMethod[] = [
       { id: 'insights',     label: 'Insights',            hint: 'Observations that stand out to you.' },
       { id: 'application',  label: 'Personal Application', hint: 'How does this passage apply to your life?' },
       { id: 'summary',      label: 'Title & Summary',     hint: 'Give it a title and summarize the main point.' },
-    ],
-  },
-  {
-    id: 'four-rs',
-    name: 'The Four Rs',
-    blurb: 'Read slowly and listen: Read, Reflect, Respond, Rest.',
-    attribution: "Adapted from The Navigators' “Four Rs of Bible Study,” excerpted from MaryKate Morse, Lifelong Leadership (NavPress, 2020). Used by permission.",
-    sourceUrl: 'https://www.navigators.org/resource/bible-study-tools/',
-    sections: [
-      { id: 'read',    label: 'Read',    hint: 'Read the passage slowly. What word or phrase stands out to you?' },
-      { id: 'reflect', label: 'Reflect', hint: 'How does this passage speak to your life today?' },
-      { id: 'respond', label: 'Respond', hint: 'Write a short prayer of response.' },
-      { id: 'rest',    label: 'Rest',    hint: 'Receive it quietly. What truth will you rest in?' },
     ],
   },
   {
