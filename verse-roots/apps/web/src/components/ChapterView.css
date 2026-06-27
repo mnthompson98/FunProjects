@@ -138,3 +138,7 @@
   gap: 0.5rem;
   align-items: flex-start;
 }
+
+.chapter-verse__panel-anchor {
+  scroll-margin-top: var(--header-h);
+}

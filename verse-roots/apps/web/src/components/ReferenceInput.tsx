@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import './ReferenceInput.css';
 
@@ -10,10 +10,13 @@ interface ReferenceInputProps {
 
 export function ReferenceInput({ onSubmit, loading, error }: ReferenceInputProps) {
   const [value, setValue] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (value.trim()) {
+      // Blur so iOS releases zoom after submission
+      inputRef.current?.blur();
       onSubmit(value.trim());
     }
   };
@@ -22,6 +25,7 @@ export function ReferenceInput({ onSubmit, loading, error }: ReferenceInputProps
     <div className="reference-input-container">
       <form className="reference-form" onSubmit={handleSubmit}>
         <input
+          ref={inputRef}
           className="reference-input"
           type="text"
           value={value}

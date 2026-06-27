@@ -146,18 +146,11 @@ function ChapterVerse({
 
   useEffect(() => {
     if (!showInlinePanel) return;
-    // rAF x2: first lets React paint the panel, second lets layout settle
-    const raf1 = requestAnimationFrame(() => {
-      const raf2 = requestAnimationFrame(() => {
-        const el = panelRef.current;
-        if (!el) return;
-        const headerHeight = 60; // matches --header-h in CSS
-        const top = el.getBoundingClientRect().top + window.scrollY - headerHeight;
-        window.scrollTo({ top, behavior: 'smooth' });
-      });
-      return () => cancelAnimationFrame(raf2);
+    // Use rAF to wait for paint, then scrollIntoView without smooth (iOS-safe)
+    const raf = requestAnimationFrame(() => {
+      panelRef.current?.scrollIntoView({ block: 'start' });
     });
-    return () => cancelAnimationFrame(raf1);
+    return () => cancelAnimationFrame(raf);
   }, [showInlinePanel]);
 
   const [text, setText] = useState<string | null>(null);
@@ -218,7 +211,7 @@ function ChapterVerse({
             ))}
           </div>
           {showInlinePanel && (
-            <div ref={panelRef}>
+            <div ref={panelRef} className="chapter-verse__panel-anchor">
               <SidePanel
                 inline
                 word={selectedWord!}
