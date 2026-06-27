@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { OriginalWord, VerseWithWords, StrongsEntry } from '../types';
 import { getVerseTranslation } from '@verse-roots/bible-client';
 import { fetchNivVerse, isApiBibleConfigured } from '../utils/apiBible';
@@ -142,6 +142,18 @@ function ChapterVerse({
     isExpanded &&
     selectedWord !== null &&
     verse.words.some((w) => w.id === selectedWord.id);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (showInlinePanel && panelRef.current) {
+      // Small delay lets the panel finish rendering before measuring
+      const id = setTimeout(() => {
+        panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 80);
+      return () => clearTimeout(id);
+    }
+  }, [showInlinePanel]);
+
   const [text, setText] = useState<string | null>(null);
   const [textLoading, setTextLoading] = useState(true);
 
@@ -200,14 +212,16 @@ function ChapterVerse({
             ))}
           </div>
           {showInlinePanel && (
-            <SidePanel
-              inline
-              word={selectedWord!}
-              strongs={selectedStrongs}
-              onClose={onPanelClose}
-              onNavigate={onNavigate}
-              onStudySaved={onStudySaved}
-            />
+            <div ref={panelRef}>
+              <SidePanel
+                inline
+                word={selectedWord!}
+                strongs={selectedStrongs}
+                onClose={onPanelClose}
+                onNavigate={onNavigate}
+                onStudySaved={onStudySaved}
+              />
+            </div>
           )}
         </div>
       )}
