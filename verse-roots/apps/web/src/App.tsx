@@ -10,7 +10,7 @@ import { normalizeRef } from './normalizeRef';
 import type { OriginalWord, VerseWithWords, StrongsEntry } from './types';
 import { getVerse, getStrongs, getChapter } from '@verse-roots/bible-client';
 import { isApiBibleConfigured } from './utils/apiBible';
-import { formatPassageRef } from './utils/formatRef';
+import { ReflectionPanel } from './components/ReflectionPanel';
 import type { Study, ReflectionSelection } from './study/types';
 import './App.css';
 
@@ -38,7 +38,7 @@ function App() {
     isApiBibleConfigured ? 'NIV' : 'KJV'
   );
   const [navHistory, setNavHistory] = useState<NavSnapshot[]>([]);
-  const [pendingReflection, setPendingReflection] = useState<ReflectionSelection | null>(null);
+  const [reflection, setReflection] = useState<{ selection?: ReflectionSelection; study?: Study } | null>(null);
 
   // Always-current snapshot so loadVerse can push it without stale closures
   const snapshotRef = useRef<NavSnapshot>({
@@ -241,7 +241,7 @@ function App() {
               onPanelClose={handlePanelClose}
               onNavigate={handleConcordanceNavigate}
               onStudySaved={handleStudySaved}
-              onStartReflection={setPendingReflection}
+              onStartReflection={(sel) => setReflection({ selection: sel })}
             />
           )}
         </div>
@@ -259,25 +259,18 @@ function App() {
         )}
       </main>
 
-      {pendingReflection && (
-        <div className="reflect-preview-overlay" onClick={() => setPendingReflection(null)}>
-          <div className="reflect-preview" onClick={(e) => e.stopPropagation()}>
-            <h3 className="reflect-preview__ref">{formatPassageRef(pendingReflection.passageRef)}</h3>
-            {pendingReflection.snapshot.text && (
-              <blockquote className="reflect-preview__quote">"{pendingReflection.snapshot.text}"</blockquote>
-            )}
-            <p className="reflect-preview__meta">
-              {pendingReflection.verseRefs.length} verse(s), {pendingReflection.wordIds.length} word(s) selected
-            </p>
-            <p className="reflect-preview__note">Reflection editor (method picker + journaling) arrives in the next step.</p>
-            <button className="reflect-preview__close" onClick={() => setPendingReflection(null)}>Close</button>
-          </div>
-        </div>
+      {reflection && (
+        <ReflectionPanel
+          selection={reflection.selection}
+          existing={reflection.study}
+          onClose={() => setReflection(null)}
+        />
       )}
 
       {showLibrary && (
         <Library
           onOpen={(ref) => { loadVerse(ref); setShowLibrary(false); }}
+          onOpenReflection={(study) => { setReflection({ study }); setShowLibrary(false); }}
           onClose={() => setShowLibrary(false)}
         />
       )}
