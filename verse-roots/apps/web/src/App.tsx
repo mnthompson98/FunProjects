@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useLayoutEffect } from 'react';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { ReferenceInput } from './components/ReferenceInput';
@@ -169,23 +169,23 @@ function App() {
 
   const canGoBack = navHistory.length > 0;
 
-  const sidePanelScrollRef = useCallback((node: HTMLDivElement | null) => {
-    if (!node) return;
+  const panelWrapperRef = useRef<HTMLDivElement | null>(null);
+  useLayoutEffect(() => {
+    if (!selectedWord || !panelWrapperRef.current) return;
+    const node = panelWrapperRef.current;
     const timer = setTimeout(() => {
-      const HEADER = 60;
-      const fromTop = node.getBoundingClientRect().top;
-      const currentScroll =
-        window.pageYOffset ??
-        document.documentElement.scrollTop ??
-        document.body.scrollTop ??
-        0;
-      const target = Math.max(0, currentScroll + fromTop - HEADER);
+      // offsetTop traversal: reliable on iOS Safari PWA
+      let top = 0;
+      let el: HTMLElement | null = node;
+      while (el) { top += el.offsetTop; el = el.offsetParent as HTMLElement | null; }
+      const HEADER = 76; // 60px header + 16px breathing room
+      const target = Math.max(0, top - HEADER);
       window.scroll(0, target);
       document.documentElement.scrollTop = target;
       document.body.scrollTop = target;
-    }, 200);
+    }, 300);
     return () => clearTimeout(timer);
-  }, []);
+  }, [selectedWord?.id]); // re-fires each time a different word is selected
 
   return (
     <div className="app">
@@ -244,7 +244,7 @@ function App() {
         </div>
 
         {verse && selectedWord && (
-          <div ref={sidePanelScrollRef}>
+          <div ref={panelWrapperRef}>
             <SidePanel
               word={selectedWord}
               strongs={strongsLoading ? null : selectedStrongs}

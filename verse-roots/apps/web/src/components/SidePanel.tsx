@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { OriginalWord, StrongsEntry, ConcordanceResponse, ConcordanceEntry } from '../types';
 import { getConcordance } from '@verse-roots/bible-client';
 import { formatRef } from '../utils/formatRef';
@@ -27,6 +27,12 @@ export function SidePanel({
 }: SidePanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>('lexicon');
   const [showExplorer, setShowExplorer] = useState(false);
+  const asideRef = useRef<HTMLElement | null>(null);
+
+  // Scroll panel back to top whenever the view changes
+  const scrollPanelTop = useCallback(() => {
+    if (asideRef.current) asideRef.current.scrollTop = 0;
+  }, []);
 
   // Concordance data lifted here so explorer can be opened from the header
   const concordanceCache = useRef<Map<string, ConcordanceResponse>>(new Map());
@@ -40,7 +46,11 @@ export function SidePanel({
     setConcordanceData(null);
     setConcordanceFetching(false);
     setConcordanceError(null);
-  }, [word.strongs]);
+    scrollPanelTop();
+  }, [word.strongs, scrollPanelTop]);
+
+  // Scroll to top when switching tabs or opening explorer
+  useEffect(() => { scrollPanelTop(); }, [activeTab, showExplorer, scrollPanelTop]);
 
   // Fetch concordance when tab is opened or when explorer is triggered from header
   const ensureConcordance = () => {
@@ -71,7 +81,7 @@ export function SidePanel({
   const lemmaLabel = strongs?.lemma ?? word.originalText;
 
   return (
-    <aside className={`side-panel${inline ? ' side-panel--inline' : ''}`}>
+    <aside ref={asideRef} className={`side-panel${inline ? ' side-panel--inline' : ''}`}>
       <div className="side-panel__header">
         <div className="side-panel__word-info">
           {word.strongs ? (

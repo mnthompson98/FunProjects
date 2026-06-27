@@ -145,21 +145,16 @@ function ChapterVerse({
   // Callback ref fires exactly when the panel div mounts — no timing guesswork
   const panelRef = useCallback((node: HTMLDivElement | null) => {
     if (!node) return;
-    // 200 ms gives iOS time to finish layout before we measure
     const timer = setTimeout(() => {
-      const HEADER = 60; // matches --header-h
-      const fromTop = node.getBoundingClientRect().top;
-      const currentScroll =
-        window.pageYOffset ??
-        document.documentElement.scrollTop ??
-        document.body.scrollTop ??
-        0;
-      const target = Math.max(0, currentScroll + fromTop - HEADER);
-      // Hit all three methods — iOS Safari PWA honours at least one
+      let top = 0;
+      let el: HTMLElement | null = node;
+      while (el) { top += el.offsetTop; el = el.offsetParent as HTMLElement | null; }
+      const HEADER = 76; // 60px header + 16px breathing room
+      const target = Math.max(0, top - HEADER);
       window.scroll(0, target);
       document.documentElement.scrollTop = target;
       document.body.scrollTop = target;
-    }, 200);
+    }, 300);
     return () => clearTimeout(timer);
   }, []);
 
