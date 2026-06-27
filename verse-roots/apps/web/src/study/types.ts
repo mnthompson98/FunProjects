@@ -40,6 +40,16 @@ export interface PassageSnapshot {
   wordIds: number[];   // stable original_word ids (for optional v2 live re-highlighting)
 }
 
+// Payload handed from the chapter Select-mode UI up to the app when the user
+// taps "Reflect". Drives creation of a passage reflection.
+export interface ReflectionSelection {
+  passageRef: string;      // verse span within one chapter, e.g. "Jhn.3.16-17"
+  startVerseRef: string;   // OSIS ref of the first verse (used as Study.verseRef)
+  verseRefs: string[];     // selected whole-verse refs
+  wordIds: number[];       // selected sub-verse word ids
+  snapshot: PassageSnapshot;
+}
+
 export interface StudyGroup {
   id: string;
   name: string;

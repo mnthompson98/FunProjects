@@ -16,13 +16,27 @@ const ALL_BOOKS = [
 import type { Study } from '../study/types';
 import type { StudyGroup } from '../study/types';
 import { getAllStudies, deleteStudy, saveStudy, getAllGroups, saveGroup, deleteGroup } from '../study/db';
-import { formatRef } from '../utils/formatRef';
+import { formatRef, formatPassageRef } from '../utils/formatRef';
+import { getMethod } from '../study/methods';
 import './Library.css';
+
+type KindFilter = 'all' | 'word' | 'passage';
+
+function studyKind(study: Study): 'word' | 'passage' {
+  return study.kind === 'passage' ? 'passage' : 'word';
+}
+
+function studyDisplayRef(study: Study): string {
+  return studyKind(study) === 'passage' && study.passageRef
+    ? formatPassageRef(study.passageRef)
+    : formatRef(study.verseRef);
+}
 
 const GROUP_COLORS = ['#C9954A','#4A7FA5','#5A8A6E','#A84848','#8B6F9B','#4A8FA5'];
 
 interface LibraryProps {
   onOpen: (verseRef: string) => void;
+  onOpenReflection?: (study: Study) => void;
   onClose: () => void;
 }
 
@@ -48,9 +62,10 @@ function getContextSnippet(study: Study): string {
   return text.length > 100 ? text.slice(0, 100) + '…' : text;
 }
 
-export function Library({ onOpen, onClose }: LibraryProps) {
+export function Library({ onOpen, onOpenReflection, onClose }: LibraryProps) {
   const [studies, setStudies] = useState<Study[]>([]);
   const [groups, setGroups] = useState<StudyGroup[]>([]);
+  const [kindFilter, setKindFilter] = useState<KindFilter>('all');
   const [groupFilter, setGroupFilter] = useState('');
   const [newGroupName, setNewGroupName] = useState('');
   const [showGroupInput, setShowGroupInput] = useState(false);
@@ -133,8 +148,15 @@ export function Library({ onOpen, onClose }: LibraryProps) {
     return Array.from(set).sort();
   }, [studies]);
 
+  const counts = useMemo(() => {
+    let word = 0, passage = 0;
+    studies.forEach((s) => { if (studyKind(s) === 'passage') passage++; else word++; });
+    return { all: studies.length, word, passage };
+  }, [studies]);
+
   const filtered = useMemo(() => {
     return studies.filter((s) => {
+      if (kindFilter !== 'all' && studyKind(s) !== kindFilter) return false;
       if (bookFilter && getBookFromRef(s.verseRef) !== bookFilter) return false;
       if (wordsFilter && s.focusStrongs !== wordsFilter) return false;
       if (groupFilter) {
@@ -152,10 +174,14 @@ export function Library({ onOpen, onClose }: LibraryProps) {
       }
       return true;
     });
-  }, [studies, search, bookFilter, wordsFilter, groupFilter]);
+  }, [studies, search, bookFilter, wordsFilter, groupFilter, kindFilter]);
 
   const handleOpen = (study: Study) => {
-    onOpen(study.verseRef);
+    if (studyKind(study) === 'passage' && onOpenReflection) {
+      onOpenReflection(study);
+    } else {
+      onOpen(study.verseRef);
+    }
     onClose();
   };
 
@@ -226,6 +252,22 @@ export function Library({ onOpen, onClose }: LibraryProps) {
             )}
           </div>
         )}
+
+        <div className="library-kinds" role="group" aria-label="Filter by study type">
+          {([
+            ['all', 'All', counts.all],
+            ['word', 'Word', counts.word],
+            ['passage', 'Reflection', counts.passage],
+          ] as const).map(([value, label, count]) => (
+            <button
+              key={value}
+              className={`library-kind-tab${kindFilter === value ? ' library-kind-tab--active' : ''}`}
+              onClick={() => setKindFilter(value)}
+            >
+              {label} <span className="library-kind-tab__count">{count}</span>
+            </button>
+          ))}
+        </div>
 
         <div className="library-filters">
           <input
@@ -323,7 +365,9 @@ interface StudyCardProps {
 
 function StudyCard({ study, groups, onClick, onDelete, onAssignGroup }: StudyCardProps) {
   const snippet = getContextSnippet(study);
+  const isPassage = studyKind(study) === 'passage';
   const wordLabel = [study.focusStrongs, study.focusWord].filter(Boolean).join(' ');
+  const methodName = isPassage ? getMethod(study.methodId ?? '')?.name : null;
   const currentGroup = groups.find((g) => g.id === study.groupId);
   const [showGroupSelect, setShowGroupSelect] = useState(false);
 
@@ -331,11 +375,20 @@ function StudyCard({ study, groups, onClick, onDelete, onAssignGroup }: StudyCar
     <div className="study-card" role="button" tabIndex={0} onClick={onClick}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}>
       <div className="study-card__top">
-        <span className="study-card__ref">{formatRef(study.verseRef)}</span>
+        <span className="study-card__ref">{studyDisplayRef(study)}</span>
         <span className="study-card__time">{relativeTime(study.updatedAt)}</span>
       </div>
       <div className="study-card__title">{study.title}</div>
+      {methodName && (
+        <div className="study-card__method">
+          <span className="study-card__kind-tag">Reflection</span>
+          {methodName}
+        </div>
+      )}
       {wordLabel && <div className="study-card__word">{wordLabel}</div>}
+      {isPassage && study.passageSnapshot?.text && (
+        <div className="study-card__passage-quote">“{study.passageSnapshot.text}”</div>
+      )}
       {snippet && <div className="study-card__snippet">"{snippet}"</div>}
       <div className="study-card__footer">
         <button

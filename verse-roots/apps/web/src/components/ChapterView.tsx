@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { OriginalWord, VerseWithWords, StrongsEntry } from '../types';
 import { getVerseTranslation } from '@verse-roots/bible-client';
 import { fetchNivVerse, isApiBibleConfigured } from '../utils/apiBible';
 import { WordChip } from './WordChip';
 import { SidePanel } from './SidePanel';
-import { formatRef } from '../utils/formatRef';
-import type { Study } from '../study/types';
+import { formatRef, formatPassageRef } from '../utils/formatRef';
+import type { Study, ReflectionSelection } from '../study/types';
 import './ChapterView.css';
 
 const SUPABASE_TRANSLATIONS = ['KJV', 'ASV', 'WEB'];
@@ -25,6 +25,10 @@ function formatChapterRef(ref: string): string {
   return display.replace(/:\d+$/, ''); // "John 3"
 }
 
+function verseNum(ref: string): number {
+  return parseInt(ref.split('.')[2] ?? '0', 10);
+}
+
 export interface ChapterViewProps {
   verses: VerseWithWords[];
   chapterRef: string;
@@ -40,6 +44,8 @@ export interface ChapterViewProps {
   onPanelClose: () => void;
   onNavigate: (osisRef: string, strongs: string) => void;
   onStudySaved: (study: Study) => void;
+  // Passage reflection
+  onStartReflection: (selection: ReflectionSelection) => void;
 }
 
 export function ChapterView({
@@ -56,8 +62,126 @@ export function ChapterView({
   onPanelClose,
   onNavigate,
   onStudySaved,
+  onStartReflection,
 }: ChapterViewProps) {
   const chapterDisplay = formatChapterRef(chapterRef);
+
+  // ── Select mode (passage reflection) ──
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedVerses, setSelectedVerses] = useState<Set<string>>(new Set());
+  const [selectedWords, setSelectedWords] = useState<Set<number>>(new Set());
+  const [wordPickVerse, setWordPickVerse] = useState<string | null>(null);
+  // English text per verse, lifted up from each row so we can snapshot the selection
+  const [verseText, setVerseText] = useState<Map<string, string>>(new Map());
+
+  const reportText = useCallback((ref: string, text: string) => {
+    setVerseText((prev) => {
+      if (prev.get(ref) === text) return prev;
+      const next = new Map(prev);
+      next.set(ref, text);
+      return next;
+    });
+  }, []);
+
+  const clearSelection = useCallback(() => {
+    setSelectedVerses(new Set());
+    setSelectedWords(new Set());
+    setWordPickVerse(null);
+  }, []);
+
+  const exitSelectMode = useCallback(() => {
+    setSelectMode(false);
+    clearSelection();
+  }, [clearSelection]);
+
+  const toggleVerse = useCallback((ref: string) => {
+    setSelectedVerses((prev) => {
+      const next = new Set(prev);
+      if (next.has(ref)) next.delete(ref);
+      else next.add(ref);
+      return next;
+    });
+  }, []);
+
+  const toggleWord = useCallback((id: number) => {
+    setSelectedWords((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  // Map word id → its word + verse, for snapshot building
+  const wordIndex = useMemo(() => {
+    const m = new Map<number, { word: OriginalWord; verseRef: string }>();
+    verses.forEach((v) => v.words.forEach((w) => m.set(w.id, { word: w, verseRef: v.ref })));
+    return m;
+  }, [verses]);
+
+  const hasSelection = selectedVerses.size > 0 || selectedWords.size > 0;
+
+  const handleReflect = useCallback(() => {
+    // Gather every verse number touched by a whole-verse or word selection
+    const involvedNums = new Set<number>();
+    selectedVerses.forEach((ref) => involvedNums.add(verseNum(ref)));
+    selectedWords.forEach((id) => {
+      const hit = wordIndex.get(id);
+      if (hit) involvedNums.add(verseNum(hit.verseRef));
+    });
+    if (involvedNums.size === 0) return;
+
+    const nums = Array.from(involvedNums).sort((a, b) => a - b);
+    const [bookCode, chapter] = chapterRef.split('.');
+    const min = nums[0];
+    const max = nums[nums.length - 1];
+    const passageRef = min === max ? `${bookCode}.${chapter}.${min}` : `${bookCode}.${chapter}.${min}-${max}`;
+    const startVerseRef = `${bookCode}.${chapter}.${min}`;
+
+    // Build a readable snapshot, verse by verse in order
+    const fragments: string[] = [];
+    for (const n of nums) {
+      const ref = `${bookCode}.${chapter}.${n}`;
+      if (selectedVerses.has(ref)) {
+        fragments.push(verseText.get(ref) ?? verses.find((v) => v.ref === ref)?.words.map((w) => w.originalText).join(' ') ?? '');
+      } else {
+        // only specific words from this verse
+        const picked = (verses.find((v) => v.ref === ref)?.words ?? [])
+          .filter((w) => selectedWords.has(w.id))
+          .map((w) => w.originalText);
+        if (picked.length) fragments.push(picked.join(' '));
+      }
+    }
+    const text = fragments.join(' ').trim().slice(0, 600);
+
+    onStartReflection({
+      passageRef,
+      startVerseRef,
+      verseRefs: Array.from(selectedVerses).sort((a, b) => verseNum(a) - verseNum(b)),
+      wordIds: Array.from(selectedWords),
+      snapshot: { text, wordIds: Array.from(selectedWords) },
+    });
+    exitSelectMode();
+  }, [selectedVerses, selectedWords, wordIndex, chapterRef, verseText, verses, onStartReflection, exitSelectMode]);
+
+  const selectionLabel = useMemo(() => {
+    if (!hasSelection) return '';
+    const involvedNums = new Set<number>();
+    selectedVerses.forEach((ref) => involvedNums.add(verseNum(ref)));
+    selectedWords.forEach((id) => {
+      const hit = wordIndex.get(id);
+      if (hit) involvedNums.add(verseNum(hit.verseRef));
+    });
+    const nums = Array.from(involvedNums).sort((a, b) => a - b);
+    const [bookCode, chapter] = chapterRef.split('.');
+    const min = nums[0];
+    const max = nums[nums.length - 1];
+    const passageRef = min === max ? `${bookCode}.${chapter}.${min}` : `${bookCode}.${chapter}.${min}-${max}`;
+    const parts: string[] = [formatPassageRef(passageRef)];
+    if (selectedVerses.size) parts.push(`${selectedVerses.size} verse${selectedVerses.size === 1 ? '' : 's'}`);
+    if (selectedWords.size) parts.push(`${selectedWords.size} word${selectedWords.size === 1 ? '' : 's'}`);
+    return parts.join(' · ');
+  }, [hasSelection, selectedVerses, selectedWords, wordIndex, chapterRef]);
 
   return (
     <section className="chapter-view">
@@ -65,7 +189,18 @@ export function ChapterView({
         <div className="chapter-view__title-row">
           <h2 className="chapter-view__ref">{chapterDisplay}</h2>
           <span className="chapter-view__count">{verses.length} verses</span>
+          <button
+            className={`chapter-view__select-btn${selectMode ? ' chapter-view__select-btn--active' : ''}`}
+            onClick={() => (selectMode ? exitSelectMode() : setSelectMode(true))}
+          >
+            {selectMode ? 'Done' : '✎ Reflect on a passage'}
+          </button>
         </div>
+        {selectMode && (
+          <p className="chapter-view__select-hint">
+            Tap verses to select them. Use <strong>“Pick words”</strong> on a verse to choose specific words.
+          </p>
+        )}
         <div className="translation-bar">
           <span className="translation-label">Translation:</span>
           <div className="translation-pills" role="group" aria-label="Translation">
@@ -102,9 +237,27 @@ export function ChapterView({
             onPanelClose={onPanelClose}
             onNavigate={onNavigate}
             onStudySaved={onStudySaved}
+            onTextLoaded={reportText}
+            selectMode={selectMode}
+            isSelected={selectedVerses.has(verse.ref)}
+            onToggleSelect={() => toggleVerse(verse.ref)}
+            showWordPick={wordPickVerse === verse.ref}
+            onToggleWordPick={() => setWordPickVerse((p) => (p === verse.ref ? null : verse.ref))}
+            selectedWords={selectedWords}
+            onToggleWord={toggleWord}
           />
         ))}
       </div>
+
+      {selectMode && hasSelection && (
+        <div className="reflect-bar" role="region" aria-label="Selected passage">
+          <span className="reflect-bar__label">{selectionLabel}</span>
+          <div className="reflect-bar__actions">
+            <button className="reflect-bar__clear" onClick={clearSelection}>Clear</button>
+            <button className="reflect-bar__go" onClick={handleReflect}>Reflect →</button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
@@ -122,6 +275,15 @@ interface ChapterVerseProps {
   onPanelClose: () => void;
   onNavigate: (osisRef: string, strongs: string) => void;
   onStudySaved: (study: Study) => void;
+  onTextLoaded: (ref: string, text: string) => void;
+  // Select mode
+  selectMode: boolean;
+  isSelected: boolean;
+  onToggleSelect: () => void;
+  showWordPick: boolean;
+  onToggleWordPick: () => void;
+  selectedWords: Set<number>;
+  onToggleWord: (id: number) => void;
 }
 
 function ChapterVerse({
@@ -136,6 +298,14 @@ function ChapterVerse({
   onPanelClose,
   onNavigate,
   onStudySaved,
+  onTextLoaded,
+  selectMode,
+  isSelected,
+  onToggleSelect,
+  showWordPick,
+  onToggleWordPick,
+  selectedWords,
+  onToggleWord,
 }: ChapterVerseProps) {
   // Show inline panel when this verse is expanded and the selected word belongs to it
   const showInlinePanel =
@@ -169,9 +339,11 @@ function ChapterVerse({
         if (translation === 'NIV') {
           const t = await fetchNivVerse(verse.ref);
           setText(t);
+          if (t) onTextLoaded(verse.ref, t);
         } else {
           const d = await getVerseTranslation(verse.ref, translation);
           setText(d?.text ?? null);
+          if (d?.text) onTextLoaded(verse.ref, d.text);
         }
       } catch {
         setText(null);
@@ -180,25 +352,63 @@ function ChapterVerse({
       }
     };
     void load();
-  }, [verse.ref, translation]);
+  }, [verse.ref, translation, onTextLoaded]);
+
+  const hasPickedWords = verse.words.some((w) => selectedWords.has(w.id));
+  const rowClass = [
+    'chapter-verse__row',
+    selectMode ? 'chapter-verse__row--selectable' : '',
+    selectMode && isSelected ? 'chapter-verse__row--selected' : '',
+    selectMode && !isSelected && hasPickedWords ? 'chapter-verse__row--partial' : '',
+  ].filter(Boolean).join(' ');
 
   return (
     <div className={`chapter-verse${isExpanded ? ' chapter-verse--expanded' : ''}`}>
       <button
-        className="chapter-verse__row"
-        onClick={onToggle}
-        aria-expanded={isExpanded}
+        className={rowClass}
+        onClick={selectMode ? onToggleSelect : onToggle}
+        aria-expanded={selectMode ? undefined : isExpanded}
+        aria-pressed={selectMode ? isSelected : undefined}
       >
+        {selectMode && (
+          <span className={`chapter-verse__check${isSelected ? ' chapter-verse__check--on' : ''}`} aria-hidden="true">
+            {isSelected ? '✓' : ''}
+          </span>
+        )}
         <span className="chapter-verse__num">{verse.verse}</span>
         <span className="chapter-verse__text">
           {textLoading ? <span className="chapter-verse__shimmer" /> : (text ?? '—')}
         </span>
-        <span className="chapter-verse__chevron" aria-hidden="true">
-          {isExpanded ? '▴' : '▾'}
-        </span>
+        {!selectMode && (
+          <span className="chapter-verse__chevron" aria-hidden="true">
+            {isExpanded ? '▴' : '▾'}
+          </span>
+        )}
       </button>
 
-      {isExpanded && (
+      {selectMode && (
+        <div className="chapter-verse__pick">
+          <button className="chapter-verse__pick-btn" onClick={onToggleWordPick}>
+            {showWordPick ? 'Hide words' : 'Pick words'}
+          </button>
+          {showWordPick && (
+            <div className="chapter-verse__pick-words">
+              {verse.words.map((word) => (
+                <button
+                  key={word.id}
+                  className={`pick-word${selectedWords.has(word.id) ? ' pick-word--on' : ''}`}
+                  onClick={() => onToggleWord(word.id)}
+                  title={word.gloss ?? undefined}
+                >
+                  {word.originalText}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {!selectMode && isExpanded && (
         <div className="chapter-verse__expanded">
           {!showInlinePanel && (
             <p className="chapter-verse__expanded-hint">
