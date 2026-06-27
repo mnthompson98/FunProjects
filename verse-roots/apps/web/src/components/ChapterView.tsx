@@ -4,7 +4,7 @@ import { getVerseTranslation } from '@verse-roots/bible-client';
 import { fetchNivVerse, isApiBibleConfigured } from '../utils/apiBible';
 import { WordChip } from './WordChip';
 import { SidePanel } from './SidePanel';
-import { formatRef, formatPassageRef } from '../utils/formatRef';
+import { formatRef, formatPassageRef, buildPassageRef } from '../utils/formatRef';
 import type { Study, ReflectionSelection } from '../study/types';
 import './ChapterView.css';
 
@@ -94,30 +94,57 @@ export function ChapterView({
     clearSelection();
   }, [clearSelection]);
 
+  // Map word id → its word + verse, for snapshot building + mutual exclusivity
+  const wordIndex = useMemo(() => {
+    const m = new Map<number, { word: OriginalWord; verseRef: string }>();
+    verses.forEach((v) => v.words.forEach((w) => m.set(w.id, { word: w, verseRef: v.ref })));
+    return m;
+  }, [verses]);
+
+  const verseByRef = useMemo(() => {
+    const m = new Map<string, VerseWithWords>();
+    verses.forEach((v) => m.set(v.ref, v));
+    return m;
+  }, [verses]);
+
+  // Selecting a whole verse and selecting specific words from it are mutually
+  // exclusive — picking the verse clears its word picks, and vice versa.
   const toggleVerse = useCallback((ref: string) => {
+    const verse = verseByRef.get(ref);
     setSelectedVerses((prev) => {
       const next = new Set(prev);
       if (next.has(ref)) next.delete(ref);
       else next.add(ref);
       return next;
     });
-  }, []);
+    if (verse) {
+      setSelectedWords((prev) => {
+        if (!verse.words.some((w) => prev.has(w.id))) return prev;
+        const next = new Set(prev);
+        verse.words.forEach((w) => next.delete(w.id));
+        return next;
+      });
+    }
+  }, [verseByRef]);
 
   const toggleWord = useCallback((id: number) => {
+    const hit = wordIndex.get(id);
     setSelectedWords((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
-  }, []);
-
-  // Map word id → its word + verse, for snapshot building
-  const wordIndex = useMemo(() => {
-    const m = new Map<number, { word: OriginalWord; verseRef: string }>();
-    verses.forEach((v) => v.words.forEach((w) => m.set(w.id, { word: w, verseRef: v.ref })));
-    return m;
-  }, [verses]);
+    // Picking a specific word means we no longer want the whole verse
+    if (hit) {
+      setSelectedVerses((prev) => {
+        if (!prev.has(hit.verseRef)) return prev;
+        const next = new Set(prev);
+        next.delete(hit.verseRef);
+        return next;
+      });
+    }
+  }, [wordIndex]);
 
   const hasSelection = selectedVerses.size > 0 || selectedWords.size > 0;
 
@@ -133,23 +160,22 @@ export function ChapterView({
 
     const nums = Array.from(involvedNums).sort((a, b) => a - b);
     const [bookCode, chapter] = chapterRef.split('.');
-    const min = nums[0];
-    const max = nums[nums.length - 1];
-    const passageRef = min === max ? `${bookCode}.${chapter}.${min}` : `${bookCode}.${chapter}.${min}-${max}`;
-    const startVerseRef = `${bookCode}.${chapter}.${min}`;
+    const passageRef = buildPassageRef(bookCode, chapter, nums);
+    const startVerseRef = `${bookCode}.${chapter}.${nums[0]}`;
 
-    // Build a readable snapshot, verse by verse in order
+    // Build a readable snapshot, verse by verse in order. Whole verses use the
+    // English translation; specific word picks show original (English gloss).
     const fragments: string[] = [];
     for (const n of nums) {
       const ref = `${bookCode}.${chapter}.${n}`;
+      const verse = verseByRef.get(ref);
       if (selectedVerses.has(ref)) {
-        fragments.push(verseText.get(ref) ?? verses.find((v) => v.ref === ref)?.words.map((w) => w.originalText).join(' ') ?? '');
+        fragments.push(verseText.get(ref) ?? verse?.words.map((w) => w.originalText).join(' ') ?? '');
       } else {
-        // only specific words from this verse
-        const picked = (verses.find((v) => v.ref === ref)?.words ?? [])
+        const picked = (verse?.words ?? [])
           .filter((w) => selectedWords.has(w.id))
-          .map((w) => w.originalText);
-        if (picked.length) fragments.push(picked.join(' '));
+          .map((w) => (w.gloss ? `${w.originalText} (${w.gloss})` : w.originalText));
+        if (picked.length) fragments.push(picked.join(', '));
       }
     }
     const text = fragments.join(' ').trim().slice(0, 600);
@@ -161,8 +187,9 @@ export function ChapterView({
       wordIds: Array.from(selectedWords),
       snapshot: { text, wordIds: Array.from(selectedWords) },
     });
-    exitSelectMode();
-  }, [selectedVerses, selectedWords, wordIndex, chapterRef, verseText, verses, onStartReflection, exitSelectMode]);
+    // Intentionally NOT exiting select mode — the user keeps their selection
+    // and decides when to Clear or tap Done.
+  }, [selectedVerses, selectedWords, wordIndex, chapterRef, verseText, verseByRef, onStartReflection]);
 
   const selectionLabel = useMemo(() => {
     if (!hasSelection) return '';
@@ -174,9 +201,7 @@ export function ChapterView({
     });
     const nums = Array.from(involvedNums).sort((a, b) => a - b);
     const [bookCode, chapter] = chapterRef.split('.');
-    const min = nums[0];
-    const max = nums[nums.length - 1];
-    const passageRef = min === max ? `${bookCode}.${chapter}.${min}` : `${bookCode}.${chapter}.${min}-${max}`;
+    const passageRef = buildPassageRef(bookCode, chapter, nums);
     const parts: string[] = [formatPassageRef(passageRef)];
     if (selectedVerses.size) parts.push(`${selectedVerses.size} verse${selectedVerses.size === 1 ? '' : 's'}`);
     if (selectedWords.size) parts.push(`${selectedWords.size} word${selectedWords.size === 1 ? '' : 's'}`);
@@ -198,7 +223,7 @@ export function ChapterView({
         </div>
         {selectMode && (
           <p className="chapter-view__select-hint">
-            Tap verses to select them. Use <strong>“Pick words”</strong> on a verse to choose specific words.
+            Tap a verse to select it, or tap <strong>▾</strong> to choose specific words within it.
           </p>
         )}
         <div className="translation-bar">
@@ -355,56 +380,68 @@ function ChapterVerse({
   }, [verse.ref, translation, onTextLoaded]);
 
   const hasPickedWords = verse.words.some((w) => selectedWords.has(w.id));
-  const rowClass = [
-    'chapter-verse__row',
-    selectMode ? 'chapter-verse__row--selectable' : '',
-    selectMode && isSelected ? 'chapter-verse__row--selected' : '',
-    selectMode && !isSelected && hasPickedWords ? 'chapter-verse__row--partial' : '',
-  ].filter(Boolean).join(' ');
+  const rowClass = selectMode
+    ? [
+        'chapter-verse__row--selectable',
+        isSelected ? 'chapter-verse__row--selected' : '',
+        !isSelected && hasPickedWords ? 'chapter-verse__row--partial' : '',
+      ].filter(Boolean).join(' ')
+    : 'chapter-verse__row';
 
   return (
     <div className={`chapter-verse${isExpanded ? ' chapter-verse--expanded' : ''}`}>
-      <button
-        className={rowClass}
-        onClick={selectMode ? onToggleSelect : onToggle}
-        aria-expanded={selectMode ? undefined : isExpanded}
-        aria-pressed={selectMode ? isSelected : undefined}
-      >
-        {selectMode && (
-          <span className={`chapter-verse__check${isSelected ? ' chapter-verse__check--on' : ''}`} aria-hidden="true">
-            {isSelected ? '✓' : ''}
+      {selectMode ? (
+        <div className={rowClass}>
+          <button
+            className="chapter-verse__select-zone"
+            onClick={onToggleSelect}
+            aria-pressed={isSelected}
+          >
+            <span className={`chapter-verse__check${isSelected ? ' chapter-verse__check--on' : ''}`} aria-hidden="true">
+              {isSelected ? '✓' : ''}
+            </span>
+            <span className="chapter-verse__num">{verse.verse}</span>
+            <span className="chapter-verse__text">
+              {textLoading ? <span className="chapter-verse__shimmer" /> : (text ?? '—')}
+            </span>
+          </button>
+          <button
+            className={`chapter-verse__words-toggle${showWordPick ? ' chapter-verse__words-toggle--open' : ''}`}
+            onClick={onToggleWordPick}
+            aria-expanded={showWordPick}
+            title="Choose specific words"
+          >
+            <span aria-hidden="true">{showWordPick ? '▴' : '▾'}</span>
+          </button>
+        </div>
+      ) : (
+        <button
+          className={rowClass}
+          onClick={onToggle}
+          aria-expanded={isExpanded}
+        >
+          <span className="chapter-verse__num">{verse.verse}</span>
+          <span className="chapter-verse__text">
+            {textLoading ? <span className="chapter-verse__shimmer" /> : (text ?? '—')}
           </span>
-        )}
-        <span className="chapter-verse__num">{verse.verse}</span>
-        <span className="chapter-verse__text">
-          {textLoading ? <span className="chapter-verse__shimmer" /> : (text ?? '—')}
-        </span>
-        {!selectMode && (
           <span className="chapter-verse__chevron" aria-hidden="true">
             {isExpanded ? '▴' : '▾'}
           </span>
-        )}
-      </button>
+        </button>
+      )}
 
-      {selectMode && (
-        <div className="chapter-verse__pick">
-          <button className="chapter-verse__pick-btn" onClick={onToggleWordPick}>
-            {showWordPick ? 'Hide words' : 'Pick words'}
-          </button>
-          {showWordPick && (
-            <div className="chapter-verse__pick-words">
-              {verse.words.map((word) => (
-                <button
-                  key={word.id}
-                  className={`pick-word${selectedWords.has(word.id) ? ' pick-word--on' : ''}`}
-                  onClick={() => onToggleWord(word.id)}
-                  title={word.gloss ?? undefined}
-                >
-                  {word.originalText}
-                </button>
-              ))}
-            </div>
-          )}
+      {selectMode && showWordPick && (
+        <div className="chapter-verse__pick-words">
+          {verse.words.map((word) => (
+            <button
+              key={word.id}
+              className={`pick-word${selectedWords.has(word.id) ? ' pick-word--on' : ''}`}
+              onClick={() => onToggleWord(word.id)}
+            >
+              <span className="pick-word__original">{word.originalText}</span>
+              {word.gloss && <span className="pick-word__gloss">{word.gloss}</span>}
+            </button>
+          ))}
         </div>
       )}
 
