@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { OriginalWord, VerseWithWords, StrongsEntry } from '../types';
 import { getVerseTranslation } from '@verse-roots/bible-client';
 import { fetchNivVerse, isApiBibleConfigured } from '../utils/apiBible';
@@ -142,16 +142,26 @@ function ChapterVerse({
     isExpanded &&
     selectedWord !== null &&
     verse.words.some((w) => w.id === selectedWord.id);
-  const panelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!showInlinePanel) return;
-    // Use rAF to wait for paint, then scrollIntoView without smooth (iOS-safe)
-    const raf = requestAnimationFrame(() => {
-      panelRef.current?.scrollIntoView({ block: 'start' });
-    });
-    return () => cancelAnimationFrame(raf);
-  }, [showInlinePanel]);
+  // Callback ref fires exactly when the panel div mounts — no timing guesswork
+  const panelRef = useCallback((node: HTMLDivElement | null) => {
+    if (!node) return;
+    // 200 ms gives iOS time to finish layout before we measure
+    const timer = setTimeout(() => {
+      const HEADER = 60; // matches --header-h
+      const fromTop = node.getBoundingClientRect().top;
+      const currentScroll =
+        window.pageYOffset ??
+        document.documentElement.scrollTop ??
+        document.body.scrollTop ??
+        0;
+      const target = Math.max(0, currentScroll + fromTop - HEADER);
+      // Hit all three methods — iOS Safari PWA honours at least one
+      window.scroll(0, target);
+      document.documentElement.scrollTop = target;
+      document.body.scrollTop = target;
+    }, 200);
+    return () => clearTimeout(timer);
+  }, []);
 
   const [text, setText] = useState<string | null>(null);
   const [textLoading, setTextLoading] = useState(true);
