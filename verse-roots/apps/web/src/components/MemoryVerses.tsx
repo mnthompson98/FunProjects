@@ -6,6 +6,8 @@ import { normalizeRef } from '../normalizeRef';
 import { formatRef } from '../utils/formatRef';
 import { MemorySession } from './MemorySession';
 import { OverlayNav } from './OverlayNav';
+import { getStreak, bumpStreak, isStreakActive } from '../utils/streak';
+import { showToast } from '../utils/toast';
 import './MemoryVerses.css';
 
 interface MemoryVersesProps {
@@ -39,6 +41,7 @@ export function MemoryVerses({ translation, onClose, onHome, onLibrary, onMemory
   const [addInput, setAddInput] = useState('');
   const [addError, setAddError] = useState('');
   const [active, setActive] = useState<MemoryItem | null>(null);
+  const [streak, setStreak] = useState(() => getStreak());
 
   useEffect(() => { getAllMemoryItems().then(setItems); }, []);
   const refresh = () => getAllMemoryItems().then(setItems);
@@ -68,6 +71,7 @@ export function MemoryVerses({ translation, onClose, onHome, onLibrary, onMemory
     };
     await saveMemoryItem(item);
     await refresh();
+    showToast(`Added ${display} ✓`);
     return true;
   };
 
@@ -89,6 +93,8 @@ export function MemoryVerses({ translation, onClose, onHome, onLibrary, onMemory
     await saveMemoryItem(updated);
     await refresh();
     setActive(updated);
+    setStreak(bumpStreak());
+    if (updated.memorized) showToast(`${updated.display} memorized ✓`);
   };
 
   const handleRemove = async (e: React.MouseEvent, id: string) => {
@@ -139,6 +145,23 @@ export function MemoryVerses({ translation, onClose, onHome, onLibrary, onMemory
           <button className="memverse-add__btn" onClick={handleAddInput} disabled={!addInput.trim()}>Add</button>
         </div>
         {addError && <p className="memverse-add__error">{addError}</p>}
+
+        {items.length > 0 && (
+          <div className="memverse-stats">
+            {isStreakActive(streak) && streak.days > 0 && (
+              <span className="memverse-stat memverse-stat--streak">🔥 {streak.days}-day streak</span>
+            )}
+            <div className="memverse-progress">
+              <div className="memverse-progress__track">
+                <span
+                  className="memverse-progress__fill"
+                  style={{ width: `${items.length ? Math.round((memorized.length / items.length) * 100) : 0}%` }}
+                />
+              </div>
+              <span className="memverse-progress__label">{memorized.length}/{items.length} memorized</span>
+            </div>
+          </div>
+        )}
 
         <div className="memverse-list">
           {/* My list (in progress) */}

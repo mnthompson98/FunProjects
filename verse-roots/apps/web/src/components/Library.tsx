@@ -20,6 +20,7 @@ import { formatRef, formatPassageRef } from '../utils/formatRef';
 import { getMethod } from '../study/methods';
 import { OverlayNav } from './OverlayNav';
 import { useEscToClose } from '../hooks/useEscToClose';
+import { showToast } from '../utils/toast';
 import './Library.css';
 
 type KindFilter = 'all' | 'word' | 'passage';
@@ -136,6 +137,7 @@ export function Library({ onOpen, onOpenReflection, onClose, onHome, onLibrary, 
     setGroups((prev) => [...prev, group]);
     setNewGroupName('');
     setSubParentId(null);
+    showToast(`${parent ? 'Sub-group' : 'Group'} “${group.name}” created ✓`);
     // keep the manager open so several groups can be added in a row
   };
 

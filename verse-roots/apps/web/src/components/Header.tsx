@@ -1,3 +1,4 @@
+import { FontSizeControl } from './FontSizeControl';
 import './Header.css';
 
 interface HeaderProps {
@@ -14,6 +15,7 @@ export function Header({ onOpenLibrary, onOpenMemoryVerses }: HeaderProps) {
           <p className="header-tagline">Explore the original languages of Scripture</p>
         </div>
         <div className="header-actions">
+          <FontSizeControl />
           <button className="header-library-btn" onClick={onOpenMemoryVerses}>
             Memory Verses
           </button>

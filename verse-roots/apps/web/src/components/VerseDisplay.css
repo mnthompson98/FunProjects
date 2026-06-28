@@ -91,7 +91,7 @@
   background: var(--surface);
   border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
   font-family: var(--font-serif);
-  font-size: 1.25rem;
+  font-size: calc(1.25rem * var(--read-scale, 1));
   font-weight: 300;
   font-style: italic;
   color: var(--text);

@@ -96,6 +96,21 @@
   border: 1px solid var(--border-strong);
 }
 
+/* Continue / recent verses on the landing */
+.app-recent { margin-top: 2rem; display: flex; flex-direction: column; align-items: center; gap: 0.7rem; }
+.app-recent__label {
+  font-size: 0.68rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-subtle);
+}
+.app-recent__chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.45rem; max-width: 460px; }
+.app-recent__chip {
+  background: var(--surface2); border: 1px solid var(--border-strong);
+  border-radius: 99px; color: var(--text); font-family: var(--font-serif);
+  font-size: 0.88rem; font-weight: 300; padding: 0.3rem 0.85rem; cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+.app-recent__chip:hover { background: var(--accent); color: #0F0D0B; border-color: var(--accent); }
+
 @media (max-width: 768px) {
   .app-workspace { flex-direction: column; max-width: 100%; }
   .app-main-col { padding: 1.5rem 1.25rem; }

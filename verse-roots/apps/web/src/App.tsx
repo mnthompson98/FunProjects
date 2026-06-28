@@ -12,8 +12,16 @@ import type { OriginalWord, VerseWithWords, StrongsEntry } from './types';
 import { getVerse, getStrongs, getChapter } from '@verse-roots/bible-client';
 import { isApiBibleConfigured } from './utils/apiBible';
 import { ReflectionPanel } from './components/ReflectionPanel';
+import { Toaster } from './components/Toaster';
+import { showToast } from './utils/toast';
+import { addRecentVerse, getRecentVerses, type RecentVerse } from './utils/recent';
+import { formatRef } from './utils/formatRef';
 import { getAllMemoryItems, saveMemoryItem } from './study/db';
 import type { Study, ReflectionSelection } from './study/types';
+
+function formatChapterDisplay(osisChapter: string): string {
+  return formatRef(`${osisChapter}.1`).replace(/:\d+$/, '');
+}
 import './App.css';
 
 interface NavSnapshot {
@@ -42,6 +50,7 @@ function App() {
   );
   const [navHistory, setNavHistory] = useState<NavSnapshot[]>([]);
   const [reflection, setReflection] = useState<{ selection?: ReflectionSelection; study?: Study } | null>(null);
+  const [recent, setRecent] = useState<RecentVerse[]>(() => getRecentVerses());
 
   // Always-current snapshot so loadVerse can push it without stale closures
   const snapshotRef = useRef<NavSnapshot>({
@@ -111,6 +120,8 @@ function App() {
         }
         setChapter(data);
         setChapterRef(ref);
+        addRecentVerse(ref, formatChapterDisplay(ref));
+        setRecent(getRecentVerses());
       } else {
         const data = await getVerse(ref);
         if (!data) {
@@ -118,6 +129,8 @@ function App() {
           return;
         }
         setVerse(data);
+        addRecentVerse(ref, formatRef(ref));
+        setRecent(getRecentVerses());
 
         if (autoSelectStrongs) {
           const match = data.words.find((w) => w.strongs === autoSelectStrongs);
@@ -186,6 +199,7 @@ function App() {
         source: 'custom',
         addedAt: Date.now(),
       });
+      showToast(`Added ${display} to Memory ✓`);
       return 'added';
     },
     [],
@@ -261,6 +275,18 @@ function App() {
               <p className="app-empty__hint">
                 Enter a verse like <em>John 3:16</em> to study a single verse, or a chapter like <em>John 3</em> to browse and select from all its verses.
               </p>
+              {recent.length > 0 && (
+                <div className="app-recent">
+                  <p className="app-recent__label">Continue where you left off</p>
+                  <div className="app-recent__chips">
+                    {recent.map((r) => (
+                      <button key={r.ref} className="app-recent__chip" onClick={() => loadVerse(r.ref)}>
+                        {r.display}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -341,6 +367,7 @@ function App() {
         />
       )}
       <Footer />
+      <Toaster />
     </div>
   );
 }
