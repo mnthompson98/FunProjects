@@ -27,6 +27,8 @@
   transition: color var(--transition), background var(--transition), border-color var(--transition);
 }
 .library-action-btn:hover { color: var(--accent); border-color: var(--accent-dim); background: var(--accent-light); }
+.library-action-btn--accent { color: var(--accent); border-color: var(--accent-dim); background: var(--accent-light); }
+.library-action-btn--accent:hover { background: var(--accent); color: #0F0D0B; border-color: var(--accent); }
 
 .library-import-error { font-size: 0.8rem; color: var(--error); padding: 0.5rem 1.5rem 0; }
 
@@ -128,7 +130,7 @@
   background: none; border: none; color: var(--text-subtle);
   font-size: 1rem; line-height: 1; padding: 0.2rem 0.35rem;
   border-radius: var(--radius-sm); cursor: pointer;
-  opacity: 0; transition: opacity var(--transition), color var(--transition), background var(--transition);
+  opacity: 0.5; transition: opacity var(--transition), color var(--transition), background var(--transition);
 }
 .study-card:hover .study-card__delete, .study-card:focus .study-card__delete { opacity: 1; }
 .study-card__delete:hover { color: var(--error); background: rgba(168,72,72,0.12); }
@@ -155,6 +157,11 @@
   width: 7px; height: 7px; border-radius: 50%; background: var(--group-color, var(--accent));
   flex-shrink: 0;
 }
+.library-group-pill--child {
+  font-size: 0.69rem; padding: 0.15rem 0.6rem; opacity: 0.92;
+  border-style: dashed;
+}
+.library-group-pill--child .library-group-pill__dot { width: 5px; height: 5px; }
 
 /* Group manager panel */
 .library-group-manager {
@@ -177,6 +184,15 @@
 .library-group-manager__item:last-child { border-bottom: none; }
 .library-group-manager__dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .library-group-manager__name { flex: 1; font-size: 0.82rem; color: var(--text-muted); }
+.library-group-manager__item--child { padding-left: 1.1rem; }
+.library-group-manager__item--child .library-group-manager__name { font-size: 0.78rem; color: var(--text-subtle); }
+.library-group-manager__sub {
+  background: none; border: 1px solid var(--border-strong); border-radius: 99px;
+  color: var(--text-subtle); font-size: 0.66rem; font-weight: 500;
+  padding: 0.1rem 0.5rem; cursor: pointer; font-family: var(--font-sans);
+  transition: color var(--transition), border-color var(--transition);
+}
+.library-group-manager__sub:hover { color: var(--accent); border-color: var(--accent-dim); }
 .library-group-manager__delete {
   background: none; border: none; color: var(--text-subtle);
   font-size: 1rem; line-height: 1; padding: 0.15rem 0.3rem;
@@ -201,10 +217,11 @@
 .study-card__group-none { color: var(--text-subtle); }
 
 .study-card__group-select {
-  position: absolute; left: 1.1rem; bottom: calc(100% + 4px);
+  /* Inline (not absolute) so the scrolling library list can't clip it */
+  margin-top: 0.45rem;
   background: var(--surface2); border: 1px solid var(--border-strong);
-  border-radius: var(--radius); box-shadow: var(--shadow-lg);
-  z-index: 10; min-width: 140px; overflow: hidden;
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  overflow: hidden;
 }
 .study-card__group-option {
   display: flex; align-items: center; gap: 0.45rem; width: 100%;
@@ -216,3 +233,4 @@
 .study-card__group-option:last-child { border-bottom: none; }
 .study-card__group-option:hover { background: var(--surface3); color: var(--text); }
 .study-card__group-option--active { color: var(--accent); }
+.study-card__group-option--child { padding-left: 1.4rem; font-size: 0.74rem; }

@@ -1,0 +1,14 @@
+.fontsize-control { display: inline-flex; gap: 0.2rem; }
+.fontsize-control__btn {
+  display: inline-flex; align-items: baseline;
+  background: transparent; border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm); color: var(--text-muted);
+  font-family: var(--font-sans); font-weight: 600; cursor: pointer;
+  padding: 0.25rem 0.45rem; line-height: 1;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+.fontsize-control__btn:hover:not(:disabled) { color: var(--accent); border-color: var(--accent-dim); background: var(--accent-light); }
+.fontsize-control__btn:disabled { opacity: 0.35; cursor: default; }
+.fontsize-control__btn span { font-size: 0.65em; }
+.fontsize-control__btn:first-child { font-size: 0.78rem; }
+.fontsize-control__btn:last-child { font-size: 0.95rem; }

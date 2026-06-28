@@ -22,6 +22,9 @@ type Mode = 'learning' | 'quiz' | 'builder';
 
 export function MemorySession({ item, translation, onClose, onHome, onLibrary, onPracticed }: MemorySessionProps) {
   const [mode, setMode] = useState<Mode>('learning');
+  // Local mirror so rapid taps chain off the latest value, not a possibly-stale prop
+  const [liveItem, setLiveItem] = useState(item);
+  useEffect(() => { setLiveItem(item); }, [item.id]); // reset when a different item opens
   const [trans, setTrans] = useState(translation);
   const [fullText, setFullText] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,24 +60,28 @@ export function MemorySession({ item, translation, onClose, onHome, onLibrary, o
   }, [item.ref, item.scope, trans]);
 
   const markPracticed = () => {
-    onPracticed({
-      ...item,
+    const updated = {
+      ...liveItem,
       lastPracticed: Date.now(),
-      timesPracticed: (item.timesPracticed ?? 0) + 1,
-    });
+      timesPracticed: (liveItem.timesPracticed ?? 0) + 1,
+    };
+    setLiveItem(updated);
+    onPracticed(updated);
   };
 
   const toggleMemorized = () => {
-    onPracticed({
-      ...item,
-      memorized: !item.memorized,
-      memorizedAt: !item.memorized ? Date.now() : item.memorizedAt,
-    });
+    const updated = {
+      ...liveItem,
+      memorized: !liveItem.memorized,
+      memorizedAt: !liveItem.memorized ? Date.now() : liveItem.memorizedAt,
+    };
+    setLiveItem(updated);
+    onPracticed(updated);
   };
 
   return (
     <div className="memsession-overlay" onClick={onClose}>
-      <div className="memsession" onClick={(e) => e.stopPropagation()}>
+      <div className="memsession" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Memorization session">
         <OverlayNav current="memory" onHome={onHome} onLibrary={onLibrary} onMemoryVerses={onClose} />
         <div className="memsession__header">
           <button className="memsession__back" onClick={onClose}>← My List</button>
@@ -83,10 +90,10 @@ export function MemorySession({ item, translation, onClose, onHome, onLibrary, o
             {item.display}
           </div>
           <button
-            className={`memsession__memorized${item.memorized ? ' memsession__memorized--on' : ''}`}
+            className={`memsession__memorized${liveItem.memorized ? ' memsession__memorized--on' : ''}`}
             onClick={toggleMemorized}
           >
-            {item.memorized ? '★ Memorized' : 'Mark memorized'}
+            {liveItem.memorized ? '★ Memorized' : 'Mark memorized'}
           </button>
         </div>
 

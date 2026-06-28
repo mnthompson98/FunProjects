@@ -58,6 +58,27 @@
 .memverse-add__btn:disabled { opacity: 0.4; cursor: default; }
 .memverse-add__error { padding: 0.35rem 1.4rem 0; color: var(--error); font-size: 0.76rem; }
 
+/* Streak + progress */
+.memverse-stats {
+  display: flex; align-items: center; gap: 0.85rem; flex-wrap: wrap;
+  padding: 0.6rem 1.4rem 0;
+}
+.memverse-stat--streak {
+  font-size: 0.78rem; font-weight: 600; color: var(--accent);
+  background: var(--accent-light); border: 1px solid var(--accent-dim);
+  border-radius: 99px; padding: 0.2rem 0.65rem; white-space: nowrap;
+}
+.memverse-progress { display: flex; align-items: center; gap: 0.6rem; flex: 1; min-width: 160px; }
+.memverse-progress__track {
+  flex: 1; height: 6px; background: var(--surface3);
+  border-radius: 99px; overflow: hidden; min-width: 80px;
+}
+.memverse-progress__fill {
+  display: block; height: 100%; background: var(--accent);
+  border-radius: 99px; transition: width 0.3s ease;
+}
+.memverse-progress__label { font-size: 0.72rem; color: var(--text-subtle); white-space: nowrap; }
+
 /* My list cards */
 .memverse-empty { font-size: 0.8rem; color: var(--text-subtle); font-style: italic; line-height: 1.5; }
 .memverse-mylist { display: flex; flex-direction: column; gap: 0.5rem; }

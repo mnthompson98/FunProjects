@@ -6,6 +6,8 @@ import { normalizeRef } from '../normalizeRef';
 import { formatRef } from '../utils/formatRef';
 import { MemorySession } from './MemorySession';
 import { OverlayNav } from './OverlayNav';
+import { getStreak, bumpStreak, isStreakActive } from '../utils/streak';
+import { showToast } from '../utils/toast';
 import './MemoryVerses.css';
 
 interface MemoryVersesProps {
@@ -39,9 +41,24 @@ export function MemoryVerses({ translation, onClose, onHome, onLibrary, onMemory
   const [addInput, setAddInput] = useState('');
   const [addError, setAddError] = useState('');
   const [active, setActive] = useState<MemoryItem | null>(null);
+  const [streak, setStreak] = useState(() => getStreak());
 
   useEffect(() => { getAllMemoryItems().then(setItems); }, []);
   const refresh = () => getAllMemoryItems().then(setItems);
+
+  // Escape closes the open session first, then the Memory Verses tab
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      setActive((cur) => {
+        if (cur) return null;
+        onClose();
+        return cur;
+      });
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [onClose]);
 
   const addItem = async (ref: string, scope: 'verse' | 'chapter', display: string, opts?: { topic?: string; source?: 'tms' | 'custom' }) => {
     if (items.some((i) => i.ref === ref)) return false;
@@ -54,6 +71,7 @@ export function MemoryVerses({ translation, onClose, onHome, onLibrary, onMemory
     };
     await saveMemoryItem(item);
     await refresh();
+    showToast(`Added ${display} ✓`);
     return true;
   };
 
@@ -75,6 +93,8 @@ export function MemoryVerses({ translation, onClose, onHome, onLibrary, onMemory
     await saveMemoryItem(updated);
     await refresh();
     setActive(updated);
+    setStreak(bumpStreak());
+    if (updated.memorized) showToast(`${updated.display} memorized ✓`);
   };
 
   const handleRemove = async (e: React.MouseEvent, id: string) => {
@@ -107,7 +127,7 @@ export function MemoryVerses({ translation, onClose, onHome, onLibrary, onMemory
 
   return (
     <div className="memverse-overlay" onClick={onClose}>
-      <div className="memverse-panel" onClick={(e) => e.stopPropagation()}>
+      <div className="memverse-panel" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Memory Verses">
         <OverlayNav current="memory" onHome={onHome} onLibrary={onLibrary} onMemoryVerses={onMemoryVerses} />
         <div className="memverse-header">
           <button className="memverse-back" onClick={onClose}>← Back</button>
@@ -125,6 +145,23 @@ export function MemoryVerses({ translation, onClose, onHome, onLibrary, onMemory
           <button className="memverse-add__btn" onClick={handleAddInput} disabled={!addInput.trim()}>Add</button>
         </div>
         {addError && <p className="memverse-add__error">{addError}</p>}
+
+        {items.length > 0 && (
+          <div className="memverse-stats">
+            {isStreakActive(streak) && streak.days > 0 && (
+              <span className="memverse-stat memverse-stat--streak">🔥 {streak.days}-day streak</span>
+            )}
+            <div className="memverse-progress">
+              <div className="memverse-progress__track">
+                <span
+                  className="memverse-progress__fill"
+                  style={{ width: `${items.length ? Math.round((memorized.length / items.length) * 100) : 0}%` }}
+                />
+              </div>
+              <span className="memverse-progress__label">{memorized.length}/{items.length} memorized</span>
+            </div>
+          </div>
+        )}
 
         <div className="memverse-list">
           {/* My list (in progress) */}

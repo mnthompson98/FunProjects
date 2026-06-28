@@ -2,8 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import type { OriginalWord, StrongsEntry, ConcordanceResponse, ConcordanceEntry } from '../types';
 import { getConcordance } from '@verse-roots/bible-client';
 import { formatRef } from '../utils/formatRef';
-import { StudyTab } from './StudyTab';
-import type { Study } from '../study/types';
 import './SidePanel.css';
 
 interface SidePanelProps {
@@ -11,18 +9,18 @@ interface SidePanelProps {
   strongs: StrongsEntry | null;
   onClose: () => void;
   onNavigate: (osisRef: string, strongs: string) => void;
-  onStudySaved: (study: Study) => void;
+  onReflect?: (verseRef: string) => void;
   inline?: boolean;
 }
 
-type Tab = 'lexicon' | 'concordance' | 'study';
+type Tab = 'lexicon' | 'concordance';
 
 export function SidePanel({
   word,
   strongs,
   onClose,
   onNavigate,
-  onStudySaved,
+  onReflect,
   inline = false,
 }: SidePanelProps) {
   const [activeTab, setActiveTab] = useState<Tab>('lexicon');
@@ -131,12 +129,6 @@ export function SidePanel({
             >
               Concordance
             </button>
-            <button
-              className={`tab-btn${activeTab === 'study' ? ' tab-btn--active' : ''}`}
-              onClick={() => setActiveTab('study')}
-            >
-              Study
-            </button>
           </div>
 
           <div className="side-panel__body">
@@ -154,14 +146,10 @@ export function SidePanel({
                 onOpenExplorer={handleOpenExplorer}
               />
             )}
-            {activeTab === 'study' && (
-              <StudyTab
-                verseRef={word.verseRef}
-                focusStrongs={word.strongs}
-                focusWord={word.originalText}
-                focusLemma={strongs?.lemma ?? null}
-                onStudySaved={onStudySaved}
-              />
+            {onReflect && (
+              <button className="side-panel__reflect" onClick={() => onReflect(word.verseRef)}>
+                ✎ Reflect on this verse
+              </button>
             )}
           </div>
         </>

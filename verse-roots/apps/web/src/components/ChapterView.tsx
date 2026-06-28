@@ -6,7 +6,7 @@ import { WordChip } from './WordChip';
 import { SidePanel } from './SidePanel';
 import { AddMemoryButton } from './AddMemoryButton';
 import { formatRef, formatPassageRef, buildPassageRef } from '../utils/formatRef';
-import type { Study, ReflectionSelection } from '../study/types';
+import type { ReflectionSelection } from '../study/types';
 import './ChapterView.css';
 
 const SUPABASE_TRANSLATIONS = ['KJV', 'ASV', 'WEB'];
@@ -44,7 +44,7 @@ export interface ChapterViewProps {
   selectedStrongs: StrongsEntry | null;
   onPanelClose: () => void;
   onNavigate: (osisRef: string, strongs: string) => void;
-  onStudySaved: (study: Study) => void;
+  onReflectVerse?: (verseRef: string) => void;
   // Passage reflection
   onStartReflection: (selection: ReflectionSelection) => void;
   onAddToMemory?: (ref: string, scope: 'verse' | 'chapter', display: string) => Promise<'added' | 'exists'>;
@@ -63,7 +63,7 @@ export function ChapterView({
   selectedStrongs,
   onPanelClose,
   onNavigate,
-  onStudySaved,
+  onReflectVerse,
   onStartReflection,
   onAddToMemory,
 }: ChapterViewProps) {
@@ -266,7 +266,7 @@ export function ChapterView({
             selectedStrongs={selectedStrongs}
             onPanelClose={onPanelClose}
             onNavigate={onNavigate}
-            onStudySaved={onStudySaved}
+            onReflectVerse={onReflectVerse}
             onTextLoaded={reportText}
             selectMode={selectMode}
             isSelected={selectedVerses.has(verse.ref)}
@@ -317,7 +317,7 @@ interface ChapterVerseProps {
   selectedStrongs: StrongsEntry | null;
   onPanelClose: () => void;
   onNavigate: (osisRef: string, strongs: string) => void;
-  onStudySaved: (study: Study) => void;
+  onReflectVerse?: (verseRef: string) => void;
   onTextLoaded: (ref: string, text: string) => void;
   // Select mode
   selectMode: boolean;
@@ -340,7 +340,7 @@ function ChapterVerse({
   selectedStrongs,
   onPanelClose,
   onNavigate,
-  onStudySaved,
+  onReflectVerse,
   onTextLoaded,
   selectMode,
   isSelected,
@@ -488,7 +488,7 @@ function ChapterVerse({
                 strongs={selectedStrongs}
                 onClose={onPanelClose}
                 onNavigate={onNavigate}
-                onStudySaved={onStudySaved}
+                onReflect={onReflectVerse}
               />
             </div>
           )}
