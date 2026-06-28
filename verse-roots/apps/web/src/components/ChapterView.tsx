@@ -8,6 +8,7 @@ import { AddMemoryButton } from './AddMemoryButton';
 import { TranslationBar } from './TranslationBar';
 import { TRANSLATION_ATTRIBUTION } from '../utils/translations';
 import { formatRef, formatPassageRef, buildPassageRef } from '../utils/formatRef';
+import { prevChapter, nextChapter } from '../utils/bibleBooks';
 import type { ReflectionSelection } from '../study/types';
 import './ChapterView.css';
 
@@ -40,6 +41,8 @@ export interface ChapterViewProps {
   // Passage reflection
   onStartReflection: (selection: ReflectionSelection) => void;
   onAddToMemory?: (ref: string, scope: 'verse' | 'chapter', display: string) => Promise<'added' | 'exists'>;
+  // Chapter-to-chapter navigation
+  onChangeChapter?: (chapterRef: string) => void;
 }
 
 export function ChapterView({
@@ -58,8 +61,11 @@ export function ChapterView({
   onReflectVerse,
   onStartReflection,
   onAddToMemory,
+  onChangeChapter,
 }: ChapterViewProps) {
   const chapterDisplay = formatChapterRef(chapterRef);
+  const prev = prevChapter(chapterRef);
+  const next = nextChapter(chapterRef);
 
   // ── Select mode (passage reflection) ──
   const [selectMode, setSelectMode] = useState(false);
@@ -209,6 +215,24 @@ export function ChapterView({
         <div className="chapter-view__title-row">
           <h2 className="chapter-view__ref">{chapterDisplay}</h2>
           <span className="chapter-view__count">{verses.length} verses</span>
+          {onChangeChapter && (
+            <span className="chapter-nav-mini">
+              <button
+                className="chapter-nav-mini__btn"
+                disabled={!prev}
+                onClick={() => prev && onChangeChapter(prev.ref)}
+                aria-label={prev ? `Previous chapter: ${prev.label}` : 'No previous chapter'}
+                title={prev ? prev.label : undefined}
+              >‹</button>
+              <button
+                className="chapter-nav-mini__btn"
+                disabled={!next}
+                onClick={() => next && onChangeChapter(next.ref)}
+                aria-label={next ? `Next chapter: ${next.label}` : 'No next chapter'}
+                title={next ? next.label : undefined}
+              >›</button>
+            </span>
+          )}
           {onAddToMemory && (
             <span className="chapter-view__addmem">
               <AddMemoryButton
@@ -253,6 +277,29 @@ export function ChapterView({
           />
         ))}
       </div>
+
+      {onChangeChapter && (
+        <nav className="chapter-nav" aria-label="Chapter navigation">
+          <button
+            className="chapter-nav__btn"
+            disabled={!prev}
+            onClick={() => prev && onChangeChapter(prev.ref)}
+          >
+            {prev
+              ? <><span className="chapter-nav__arrow">←</span><span className="chapter-nav__label"><span className="chapter-nav__dir">Previous</span>{prev.label}</span></>
+              : <span className="chapter-nav__edge">Beginning of the Bible</span>}
+          </button>
+          <button
+            className="chapter-nav__btn chapter-nav__btn--next"
+            disabled={!next}
+            onClick={() => next && onChangeChapter(next.ref)}
+          >
+            {next
+              ? <><span className="chapter-nav__label"><span className="chapter-nav__dir">Next</span>{next.label}</span><span className="chapter-nav__arrow">→</span></>
+              : <span className="chapter-nav__edge">End of the Bible</span>}
+          </button>
+        </nav>
+      )}
 
       <div className="chapter-fab">
         {!selectMode ? (

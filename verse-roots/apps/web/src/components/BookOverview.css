@@ -1,0 +1,28 @@
+.book-overview { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.book-overview__header { display: flex; align-items: baseline; gap: 0.75rem; }
+.book-overview__name {
+  font-family: var(--font-serif); font-size: 2rem; font-weight: 300;
+  color: var(--text); letter-spacing: 0.02em;
+}
+.book-overview__count { font-size: 0.75rem; color: var(--text-subtle); letter-spacing: 0.04em; }
+.book-overview__hint { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem; }
+
+.book-overview__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+  gap: 0.5rem;
+}
+.book-overview__chapter {
+  aspect-ratio: 1 / 1;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface2); border: 1px solid var(--border-strong);
+  border-radius: var(--radius); color: var(--text);
+  font-family: var(--font-sans); font-size: 0.95rem; font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition), transform var(--transition);
+}
+.book-overview__chapter:hover {
+  background: var(--accent); color: #0F0D0B; border-color: var(--accent);
+  transform: translateY(-1px);
+}
