@@ -1,21 +1,25 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getChapter, getVerseTranslation } from '@verse-roots/bible-client';
+import { fetchNivVerse, isApiBibleConfigured } from '../utils/apiBible';
 import type { MemoryItem } from '../study/memory';
 import { tokenize, wordCore, maskToken, pickBlankIndices, scoreTyping, shuffleStable } from '../study/memory';
 import './MemorySession.css';
 
-const MEMORY_TRANSLATION = 'KJV'; // public domain — always available, safe to display in full
+const SUPABASE_TRANSLATIONS = ['KJV', 'ASV', 'WEB'];
+const TRANSLATIONS = [...(isApiBibleConfigured ? ['NIV'] : []), ...SUPABASE_TRANSLATIONS];
 
 interface MemorySessionProps {
   item: MemoryItem;
+  translation: string;
   onClose: () => void;
   onPracticed: (item: MemoryItem) => void;
 }
 
 type Mode = 'learning' | 'quiz' | 'builder';
 
-export function MemorySession({ item, onClose, onPracticed }: MemorySessionProps) {
+export function MemorySession({ item, translation, onClose, onPracticed }: MemorySessionProps) {
   const [mode, setMode] = useState<Mode>('learning');
+  const [trans, setTrans] = useState(translation);
   const [fullText, setFullText] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,18 +28,20 @@ export function MemorySession({ item, onClose, onPracticed }: MemorySessionProps
     let cancelled = false;
     setLoading(true);
     setError(null);
+    const fetchText = (ref: string): Promise<string> =>
+      trans === 'NIV'
+        ? fetchNivVerse(ref).then((t) => t ?? '')
+        : getVerseTranslation(ref, trans).then((d) => d?.text ?? '');
     const load = async () => {
       try {
         if (item.scope === 'chapter') {
           const verses = await getChapter(item.ref);
           if (!verses || verses.length === 0) throw new Error('Chapter not found');
-          const texts = await Promise.all(
-            verses.map((v) => getVerseTranslation(v.ref, MEMORY_TRANSLATION).then((d) => d?.text ?? '')),
-          );
+          const texts = await Promise.all(verses.map((v) => fetchText(v.ref)));
           if (!cancelled) setFullText(texts.filter(Boolean).join(' '));
         } else {
-          const d = await getVerseTranslation(item.ref, MEMORY_TRANSLATION);
-          if (!cancelled) setFullText(d?.text ?? null);
+          const t = await fetchText(item.ref);
+          if (!cancelled) setFullText(t || null);
         }
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : String(e));
@@ -45,7 +51,7 @@ export function MemorySession({ item, onClose, onPracticed }: MemorySessionProps
     };
     void load();
     return () => { cancelled = true; };
-  }, [item.ref, item.scope]);
+  }, [item.ref, item.scope, trans]);
 
   const markPracticed = () => {
     onPracticed({
@@ -64,6 +70,16 @@ export function MemorySession({ item, onClose, onPracticed }: MemorySessionProps
             {item.topic && <span className="memsession__topic">{item.topic}</span>}
             {item.display}
           </div>
+        </div>
+
+        <div className="memsession__trans" role="group" aria-label="Translation">
+          {TRANSLATIONS.map((t) => (
+            <button
+              key={t}
+              className={`memsession__trans-pill${trans === t ? ' memsession__trans-pill--active' : ''}`}
+              onClick={() => setTrans(t)}
+            >{t}</button>
+          ))}
         </div>
 
         <div className="memsession__modes" role="group" aria-label="Practice mode">

@@ -299,7 +299,7 @@ function App() {
       )}
 
       {showMemoryVerses && (
-        <MemoryVerses onClose={() => setShowMemoryVerses(false)} />
+        <MemoryVerses translation={selectedTranslation} onClose={() => setShowMemoryVerses(false)} />
       )}
       <Footer />
     </div>

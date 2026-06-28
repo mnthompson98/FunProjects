@@ -33,7 +33,16 @@
 }
 .memsession__topic { font-family: var(--font-sans); font-size: 0.6rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
 
-.memsession__modes { display: flex; padding: 0 0.5rem; border-bottom: 1px solid var(--border-strong); }
+.memsession__trans { display: flex; gap: 0.35rem; padding: 0.7rem 1.4rem 0; }
+.memsession__trans-pill {
+  background: none; border: 1px solid var(--border-strong); border-radius: 99px;
+  color: var(--text-muted); font-family: var(--font-sans); font-size: 0.68rem; font-weight: 600;
+  letter-spacing: 0.04em; padding: 0.15rem 0.6rem; cursor: pointer;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+.memsession__trans-pill--active { color: var(--accent); border-color: var(--accent-dim); background: var(--accent-light); }
+
+.memsession__modes { display: flex; padding: 0.7rem 0.5rem 0; border-bottom: 1px solid var(--border-strong); }
 .memsession__mode {
   flex: 1; padding: 0.7rem 0.25rem; background: none; border: none;
   border-bottom: 2px solid transparent; margin-bottom: -1px;

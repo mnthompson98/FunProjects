@@ -8,6 +8,7 @@ import { MemorySession } from './MemorySession';
 import './MemoryVerses.css';
 
 interface MemoryVersesProps {
+  translation: string;
   onClose: () => void;
 }
 
@@ -29,7 +30,7 @@ function relativeTime(ts: number): string {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-export function MemoryVerses({ onClose }: MemoryVersesProps) {
+export function MemoryVerses({ translation, onClose }: MemoryVersesProps) {
   const [items, setItems] = useState<MemoryItem[]>([]);
   const [addInput, setAddInput] = useState('');
   const [addError, setAddError] = useState('');
@@ -166,7 +167,7 @@ export function MemoryVerses({ onClose }: MemoryVersesProps) {
       </div>
 
       {active && (
-        <MemorySession item={active} onClose={() => setActive(null)} onPracticed={handlePracticed} />
+        <MemorySession item={active} translation={translation} onClose={() => setActive(null)} onPracticed={handlePracticed} />
       )}
     </div>
   );
