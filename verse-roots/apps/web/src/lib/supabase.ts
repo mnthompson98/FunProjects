@@ -26,6 +26,21 @@ export const supabase = createClient(
 // Auth helpers
 // ---------------------------------------------------------------------------
 
+/** Begin an OAuth sign-in (redirects to the provider, returns to the app). */
+export async function signInWithProvider(
+  provider: 'google' | 'apple',
+): Promise<{ error: string | null }> {
+  if (!isSupabaseConfigured) {
+    return { error: 'Authentication is not configured yet.' };
+  }
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: { redirectTo: window.location.origin },
+  });
+  if (error) return { error: error.message };
+  return { error: null };
+}
+
 /** Send a magic link to the given email address. */
 export async function sendMagicLink(email: string): Promise<{ error: string | null }> {
   if (!isSupabaseConfigured) {
