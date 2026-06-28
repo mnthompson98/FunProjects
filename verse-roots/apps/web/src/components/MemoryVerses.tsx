@@ -84,6 +84,26 @@ export function MemoryVerses({ translation, onClose, onHome, onLibrary, onMemory
   };
 
   const inList = (ref: string) => items.some((i) => i.ref === ref);
+  const inProgress = items.filter((i) => !i.memorized);
+  const memorized = items.filter((i) => i.memorized);
+
+  const renderCard = (it: MemoryItem) => (
+    <button key={it.id} className="memverse-card" onClick={() => setActive(it)}>
+      <div className="memverse-card__main">
+        <span className="memverse-card__ref">{it.display}</span>
+        {it.topic && <span className="memverse-card__topic">{it.topic}</span>}
+      </div>
+      <div className="memverse-card__meta">
+        {it.scope === 'chapter' && <span className="memverse-card__badge">Chapter</span>}
+        {it.memorized
+          ? <span className="memverse-card__times">★ Memorized{it.memorizedAt ? ` · ${relativeTime(it.memorizedAt)}` : ''}</span>
+          : it.timesPracticed
+            ? <span className="memverse-card__times">Practiced {it.timesPracticed}×{it.lastPracticed ? ` · ${relativeTime(it.lastPracticed)}` : ''}</span>
+            : <span className="memverse-card__times">Not started</span>}
+      </div>
+      <span className="memverse-card__remove" role="button" tabIndex={0} onClick={(e) => handleRemove(e, it.id)} aria-label="Remove">×</span>
+    </button>
+  );
 
   return (
     <div className="memverse-overlay" onClick={onClose}>
@@ -107,27 +127,23 @@ export function MemoryVerses({ translation, onClose, onHome, onLibrary, onMemory
         {addError && <p className="memverse-add__error">{addError}</p>}
 
         <div className="memverse-list">
-          {/* My list */}
+          {/* My list (in progress) */}
           <section className="memverse-series">
-            <h3 className="memverse-series__name">My List</h3>
-            {items.length === 0 ? (
+            <h3 className="memverse-series__name">My List{inProgress.length > 0 ? ` (${inProgress.length})` : ''}</h3>
+            {inProgress.length === 0 ? (
               <p className="memverse-empty">Add verses above, from the catalog below, or with the ★ button while reading.</p>
             ) : (
-              <div className="memverse-mylist">
-                {items.map((it) => (
-                  <button key={it.id} className="memverse-card" onClick={() => setActive(it)}>
-                    <div className="memverse-card__main">
-                      <span className="memverse-card__ref">{it.display}</span>
-                      {it.topic && <span className="memverse-card__topic">{it.topic}</span>}
-                    </div>
-                    <div className="memverse-card__meta">
-                      {it.scope === 'chapter' && <span className="memverse-card__badge">Chapter</span>}
-                      {it.timesPracticed ? <span className="memverse-card__times">Practiced {it.timesPracticed}×{it.lastPracticed ? ` · ${relativeTime(it.lastPracticed)}` : ''}</span> : <span className="memverse-card__times">Not started</span>}
-                    </div>
-                    <span className="memverse-card__remove" role="button" tabIndex={0} onClick={(e) => handleRemove(e, it.id)} aria-label="Remove">×</span>
-                  </button>
-                ))}
-              </div>
+              <div className="memverse-mylist">{inProgress.map(renderCard)}</div>
+            )}
+          </section>
+
+          {/* Memorized folder */}
+          <section className="memverse-series">
+            <h3 className="memverse-series__name">★ Memorized{memorized.length > 0 ? ` (${memorized.length})` : ''}</h3>
+            {memorized.length === 0 ? (
+              <p className="memverse-empty">Verses you mark “Memorized” in a practice session show up here.</p>
+            ) : (
+              <div className="memverse-mylist">{memorized.map(renderCard)}</div>
             )}
           </section>
 
@@ -177,6 +193,7 @@ export function MemoryVerses({ translation, onClose, onHome, onLibrary, onMemory
           translation={translation}
           onClose={() => setActive(null)}
           onHome={onHome}
+          onLibrary={onLibrary}
           onPracticed={handlePracticed}
         />
       )}

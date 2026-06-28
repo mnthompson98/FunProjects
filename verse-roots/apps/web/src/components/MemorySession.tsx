@@ -3,6 +3,7 @@ import { getChapter, getVerseTranslation } from '@verse-roots/bible-client';
 import { fetchNivVerse, isApiBibleConfigured } from '../utils/apiBible';
 import type { MemoryItem } from '../study/memory';
 import { tokenize, wordCore, maskToken, pickBlankIndices, scoreTyping, shuffleStable } from '../study/memory';
+import { OverlayNav } from './OverlayNav';
 import './MemorySession.css';
 
 const SUPABASE_TRANSLATIONS = ['KJV', 'ASV', 'WEB'];
@@ -13,12 +14,13 @@ interface MemorySessionProps {
   translation: string;
   onClose: () => void;
   onHome: () => void;
+  onLibrary: () => void;
   onPracticed: (item: MemoryItem) => void;
 }
 
 type Mode = 'learning' | 'quiz' | 'builder';
 
-export function MemorySession({ item, translation, onClose, onHome, onPracticed }: MemorySessionProps) {
+export function MemorySession({ item, translation, onClose, onHome, onLibrary, onPracticed }: MemorySessionProps) {
   const [mode, setMode] = useState<Mode>('learning');
   const [trans, setTrans] = useState(translation);
   const [fullText, setFullText] = useState<string | null>(null);
@@ -62,16 +64,30 @@ export function MemorySession({ item, translation, onClose, onHome, onPracticed 
     });
   };
 
+  const toggleMemorized = () => {
+    onPracticed({
+      ...item,
+      memorized: !item.memorized,
+      memorizedAt: !item.memorized ? Date.now() : item.memorizedAt,
+    });
+  };
+
   return (
     <div className="memsession-overlay" onClick={onClose}>
       <div className="memsession" onClick={(e) => e.stopPropagation()}>
+        <OverlayNav current="memory" onHome={onHome} onLibrary={onLibrary} onMemoryVerses={onClose} />
         <div className="memsession__header">
           <button className="memsession__back" onClick={onClose}>← My List</button>
-          <button className="memsession__back" onClick={onHome}>⌂ Home</button>
           <div className="memsession__ref">
             {item.topic && <span className="memsession__topic">{item.topic}</span>}
             {item.display}
           </div>
+          <button
+            className={`memsession__memorized${item.memorized ? ' memsession__memorized--on' : ''}`}
+            onClick={toggleMemorized}
+          >
+            {item.memorized ? '★ Memorized' : 'Mark memorized'}
+          </button>
         </div>
 
         <div className="memsession__trans" role="group" aria-label="Translation">

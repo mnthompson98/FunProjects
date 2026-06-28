@@ -10,6 +10,8 @@ export interface MemoryItem {
   addedAt: number;
   lastPracticed?: number;
   timesPracticed?: number;
+  memorized?: boolean;
+  memorizedAt?: number;
 }
 
 // ── Text helpers for Quiz + Builder ──
