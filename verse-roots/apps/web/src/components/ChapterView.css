@@ -15,7 +15,9 @@
   display: flex;
   align-items: baseline;
   gap: 0.75rem;
+  flex-wrap: wrap;
 }
+.chapter-view__addmem { margin-left: auto; }
 
 .chapter-view__ref {
   font-family: var(--font-serif);

@@ -33,9 +33,60 @@
 }
 
 .memverse-intro {
-  padding: 0.9rem 1.4rem 0;
+  padding: 0.4rem 0 0;
   font-size: 0.8rem; color: var(--text-muted); line-height: 1.6;
 }
+.memverse-intro strong { color: var(--accent); }
+
+/* Add box */
+.memverse-add {
+  display: flex; gap: 0.5rem;
+  padding: 0.9rem 1.4rem 0;
+}
+.memverse-add__input {
+  flex: 1; background: var(--surface2); border: 1px solid var(--border-strong);
+  border-radius: var(--radius); color: var(--text);
+  font-family: var(--font-sans); font-size: 16px; padding: 0.5rem 0.85rem; outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.memverse-add__input:focus { border-color: var(--accent-dim); box-shadow: 0 0 0 3px var(--accent-glow); }
+.memverse-add__btn {
+  background: var(--accent); color: #0F0D0B; border: none;
+  border-radius: var(--radius); font-weight: 600; font-size: 0.82rem;
+  padding: 0.5rem 1.1rem; cursor: pointer;
+}
+.memverse-add__btn:disabled { opacity: 0.4; cursor: default; }
+.memverse-add__error { padding: 0.35rem 1.4rem 0; color: var(--error); font-size: 0.76rem; }
+
+/* My list cards */
+.memverse-empty { font-size: 0.8rem; color: var(--text-subtle); font-style: italic; line-height: 1.5; }
+.memverse-mylist { display: flex; flex-direction: column; gap: 0.5rem; }
+.memverse-card {
+  position: relative; text-align: left;
+  display: flex; flex-direction: column; gap: 0.3rem;
+  background: var(--surface2); border: 1px solid var(--border-strong);
+  border-radius: var(--radius); padding: 0.7rem 0.9rem; cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+.memverse-card:hover { border-color: var(--accent-dim); background: var(--surface3); }
+.memverse-card__main { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; padding-right: 1.5rem; }
+.memverse-card__ref { font-family: var(--font-serif); font-size: 1.05rem; font-weight: 400; color: var(--text); }
+.memverse-card__topic { font-size: 0.68rem; color: var(--accent); font-weight: 600; letter-spacing: 0.04em; }
+.memverse-card__meta { display: flex; align-items: center; gap: 0.5rem; }
+.memverse-card__badge {
+  font-size: 0.58rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--accent); background: var(--accent-light); border: 1px solid var(--accent-dim);
+  border-radius: 99px; padding: 0.05rem 0.4rem;
+}
+.memverse-card__times { font-size: 0.7rem; color: var(--text-subtle); }
+.memverse-card__remove {
+  position: absolute; top: 0.5rem; right: 0.6rem;
+  color: var(--text-subtle); font-size: 1rem; line-height: 1; padding: 0.1rem 0.3rem;
+  border-radius: var(--radius-sm); cursor: pointer;
+}
+.memverse-card__remove:hover { color: var(--error); background: rgba(168,72,72,0.12); }
+
+.memverse-ref--added { background: var(--accent-light); color: var(--accent); border-color: var(--accent-dim); cursor: default; opacity: 0.85; }
 
 .memverse-list {
   flex: 1; overflow-y: auto;

@@ -1,7 +1,8 @@
 import type { Study, StudyGroup } from './types';
+import type { MemoryItem } from './memory';
 
 const DB_NAME = 'verse-roots-studies';
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 const STORE_NAME = 'studies';
 
 let dbPromise: Promise<IDBDatabase> | null = null;
@@ -29,6 +30,11 @@ export function openStudyDb(): Promise<IDBDatabase> {
         const store = target.transaction!.objectStore(STORE_NAME);
         if (!store.indexNames.contains('passageRef')) {
           store.createIndex('passageRef', 'passageRef', { unique: false });
+        }
+      }
+      if (event.oldVersion < 4) {
+        if (!db.objectStoreNames.contains('memoryItems')) {
+          db.createObjectStore('memoryItems', { keyPath: 'id' });
         }
       }
     };
@@ -195,6 +201,39 @@ export async function deleteGroup(id: string): Promise<void> {
     const tx = db.transaction('groups', 'readwrite');
     const store = tx.objectStore('groups');
     const req = store.delete(id);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+
+// ── Memory Verses ──
+
+export async function getAllMemoryItems(): Promise<MemoryItem[]> {
+  const db = await openStudyDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('memoryItems', 'readonly');
+    const store = tx.objectStore('memoryItems');
+    const req = store.getAll();
+    req.onsuccess = () => resolve((req.result as MemoryItem[]).sort((a, b) => b.addedAt - a.addedAt));
+    req.onerror = () => reject(req.error);
+  });
+}
+
+export async function saveMemoryItem(item: MemoryItem): Promise<void> {
+  const db = await openStudyDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('memoryItems', 'readwrite');
+    const req = tx.objectStore('memoryItems').put(item);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+
+export async function deleteMemoryItem(id: string): Promise<void> {
+  const db = await openStudyDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('memoryItems', 'readwrite');
+    const req = tx.objectStore('memoryItems').delete(id);
     req.onsuccess = () => resolve();
     req.onerror = () => reject(req.error);
   });

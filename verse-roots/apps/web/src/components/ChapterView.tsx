@@ -4,6 +4,7 @@ import { getVerseTranslation } from '@verse-roots/bible-client';
 import { fetchNivVerse, isApiBibleConfigured } from '../utils/apiBible';
 import { WordChip } from './WordChip';
 import { SidePanel } from './SidePanel';
+import { AddMemoryButton } from './AddMemoryButton';
 import { formatRef, formatPassageRef, buildPassageRef } from '../utils/formatRef';
 import type { Study, ReflectionSelection } from '../study/types';
 import './ChapterView.css';
@@ -46,6 +47,7 @@ export interface ChapterViewProps {
   onStudySaved: (study: Study) => void;
   // Passage reflection
   onStartReflection: (selection: ReflectionSelection) => void;
+  onAddToMemory?: (ref: string, scope: 'verse' | 'chapter', display: string) => Promise<'added' | 'exists'>;
 }
 
 export function ChapterView({
@@ -63,6 +65,7 @@ export function ChapterView({
   onNavigate,
   onStudySaved,
   onStartReflection,
+  onAddToMemory,
 }: ChapterViewProps) {
   const chapterDisplay = formatChapterRef(chapterRef);
 
@@ -214,6 +217,14 @@ export function ChapterView({
         <div className="chapter-view__title-row">
           <h2 className="chapter-view__ref">{chapterDisplay}</h2>
           <span className="chapter-view__count">{verses.length} verses</span>
+          {onAddToMemory && (
+            <span className="chapter-view__addmem">
+              <AddMemoryButton
+                label="Add chapter to Memory"
+                onAdd={() => onAddToMemory(chapterRef, 'chapter', chapterDisplay)}
+              />
+            </span>
+          )}
         </div>
         {selectMode && (
           <p className="chapter-view__select-hint">

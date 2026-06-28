@@ -12,6 +12,7 @@ import type { OriginalWord, VerseWithWords, StrongsEntry } from './types';
 import { getVerse, getStrongs, getChapter } from '@verse-roots/bible-client';
 import { isApiBibleConfigured } from './utils/apiBible';
 import { ReflectionPanel } from './components/ReflectionPanel';
+import { getAllMemoryItems, saveMemoryItem } from './study/db';
 import type { Study, ReflectionSelection } from './study/types';
 import './App.css';
 
@@ -165,6 +166,21 @@ function App() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleStudySaved = useCallback((_study: Study) => {}, []);
 
+  const addToMemory = useCallback(
+    async (ref: string, scope: 'verse' | 'chapter', display: string): Promise<'added' | 'exists'> => {
+      const all = await getAllMemoryItems();
+      if (all.some((i) => i.ref === ref)) return 'exists';
+      await saveMemoryItem({
+        id: crypto.randomUUID(),
+        ref, scope, display,
+        source: 'custom',
+        addedAt: Date.now(),
+      });
+      return 'added';
+    },
+    [],
+  );
+
   const handleVerseExpand = useCallback((ref: string) => {
     setExpandedVerseRef((prev) => prev === ref ? null : ref);
     setSelectedWord(null);
@@ -228,6 +244,7 @@ function App() {
               onWordClick={handleWordClick}
               translation={selectedTranslation}
               onTranslationChange={setSelectedTranslation}
+              onAddToMemory={addToMemory}
             />
           )}
 
@@ -247,6 +264,7 @@ function App() {
               onNavigate={handleConcordanceNavigate}
               onStudySaved={handleStudySaved}
               onStartReflection={(sel) => setReflection({ selection: sel })}
+              onAddToMemory={addToMemory}
             />
           )}
         </div>
@@ -281,10 +299,7 @@ function App() {
       )}
 
       {showMemoryVerses && (
-        <MemoryVerses
-          onOpen={(ref) => { loadVerse(ref); setShowMemoryVerses(false); }}
-          onClose={() => setShowMemoryVerses(false)}
-        />
+        <MemoryVerses onClose={() => setShowMemoryVerses(false)} />
       )}
       <Footer />
     </div>

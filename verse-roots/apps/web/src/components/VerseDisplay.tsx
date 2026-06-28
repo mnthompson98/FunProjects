@@ -3,6 +3,7 @@ import type { OriginalWord, VerseWithWords } from '../types';
 import { getVerseTranslation } from '@verse-roots/bible-client';
 import { fetchNivVerse, isApiBibleConfigured } from '../utils/apiBible';
 import { WordChip } from './WordChip';
+import { AddMemoryButton } from './AddMemoryButton';
 import { formatRef } from '../utils';
 import './VerseDisplay.css';
 
@@ -12,6 +13,7 @@ interface VerseDisplayProps {
   onWordClick: (word: OriginalWord) => void;
   translation: string;
   onTranslationChange: (t: string) => void;
+  onAddToMemory?: (ref: string, scope: 'verse' | 'chapter', display: string) => Promise<'added' | 'exists'>;
 }
 
 // Translations stored in Supabase (always available)
@@ -49,6 +51,7 @@ export function VerseDisplay({
   onWordClick,
   translation,
   onTranslationChange,
+  onAddToMemory,
 }: VerseDisplayProps) {
   const [translationText, setTranslationText] = useState<string | null>(null);
   const [transLoading, setTransLoading] = useState(false);
@@ -78,7 +81,15 @@ export function VerseDisplay({
 
   return (
     <section className="verse-display">
-      <h2 className="verse-ref">{formatRef(verse.ref)}</h2>
+      <div className="verse-display__topline">
+        <h2 className="verse-ref">{formatRef(verse.ref)}</h2>
+        {onAddToMemory && (
+          <AddMemoryButton
+            label="Add to Memory"
+            onAdd={() => onAddToMemory(verse.ref, 'verse', formatRef(verse.ref))}
+          />
+        )}
+      </div>
 
       <div className="translation-bar">
         <span className="translation-label">Translation:</span>
