@@ -81,6 +81,8 @@ function App() {
 
   // Let browser back gesture/button trigger in-app back
   useEffect(() => {
+    // Seed one history entry so the first back is absorbed by the app
+    window.history.pushState({ vrRoot: true }, '');
     const onPopState = () => {
       setNavHistory((prev) => {
         if (prev.length === 0) return prev;

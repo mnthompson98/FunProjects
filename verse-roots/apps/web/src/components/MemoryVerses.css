@@ -102,7 +102,8 @@
 .memverse-card__times { font-size: 0.7rem; color: var(--text-subtle); }
 .memverse-card__remove {
   position: absolute; top: 0.5rem; right: 0.6rem;
-  color: var(--text-subtle); font-size: 1rem; line-height: 1; padding: 0.1rem 0.3rem;
+  background: none; border: none;
+  color: var(--text-subtle); font-size: 1rem; line-height: 1; padding: 0.1rem 0.35rem;
   border-radius: var(--radius-sm); cursor: pointer;
 }
 .memverse-card__remove:hover { color: var(--error); background: rgba(168,72,72,0.12); }

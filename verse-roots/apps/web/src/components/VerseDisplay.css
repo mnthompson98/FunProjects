@@ -84,6 +84,13 @@
 }
 
 /* Scripture blockquote */
+.translation-unavailable {
+  margin: 0 0 1.5rem 0; padding: 1rem 1.25rem;
+  border-left: 2px solid var(--border-strong);
+  background: var(--surface); border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 0.85rem; color: var(--text-muted); font-style: italic;
+}
+
 .translation-text {
   margin: 0 0 1.75rem 0;
   padding: 1.4rem 1.75rem;

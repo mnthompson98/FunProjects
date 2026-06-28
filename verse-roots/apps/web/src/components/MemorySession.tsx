@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getChapter, getVerseTranslation } from '@verse-roots/bible-client';
-import { fetchNivVerse, isApiBibleConfigured } from '../utils/apiBible';
+import { fetchNivVerse } from '../utils/apiBible';
 import type { MemoryItem } from '../study/memory';
 import { tokenize, wordCore, maskToken, pickBlankIndices, scoreTyping, shuffleStable } from '../study/memory';
+import { TRANSLATIONS } from '../utils/translations';
 import { OverlayNav } from './OverlayNav';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 import './MemorySession.css';
-
-const SUPABASE_TRANSLATIONS = ['KJV', 'ASV', 'WEB'];
-const TRANSLATIONS = [...(isApiBibleConfigured ? ['NIV'] : []), ...SUPABASE_TRANSLATIONS];
 
 interface MemorySessionProps {
   item: MemoryItem;
@@ -26,6 +25,7 @@ export function MemorySession({ item, translation, onClose, onHome, onLibrary, o
   const [liveItem, setLiveItem] = useState(item);
   useEffect(() => { setLiveItem(item); }, [item.id]); // reset when a different item opens
   const [trans, setTrans] = useState(translation);
+  const trapRef = useFocusTrap<HTMLDivElement>();
   const [fullText, setFullText] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,7 +81,7 @@ export function MemorySession({ item, translation, onClose, onHome, onLibrary, o
 
   return (
     <div className="memsession-overlay" onClick={onClose}>
-      <div className="memsession" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Memorization session">
+      <div className="memsession" ref={trapRef} tabIndex={-1} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Memorization session">
         <OverlayNav current="memory" onHome={onHome} onLibrary={onLibrary} onMemoryVerses={onClose} />
         <div className="memsession__header">
           <button className="memsession__back" onClick={onClose}>← My List</button>

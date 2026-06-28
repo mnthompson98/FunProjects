@@ -357,13 +357,9 @@ function groupByBook(results: ConcordanceEntry[]): BookGroup[] {
 
 function WordExplorer({ lemma, strongs, data, fetching, fetchError, onNavigate, onBack }: WordExplorerProps) {
   const groups = data ? groupByBook(data.results) : [];
-  const [expandedBooks, setExpandedBooks] = useState<Set<string>>(() => {
-    const s = new Set<string>();
-    if (groups.length > 0) s.add(groups[0].book);
-    return s;
-  });
+  const [expandedBooks, setExpandedBooks] = useState<Set<string>>(new Set());
 
-  // Expand first book once data loads
+  // Expand the first book once data loads
   useEffect(() => {
     if (data && data.results.length > 0) {
       const first = data.results[0].book;

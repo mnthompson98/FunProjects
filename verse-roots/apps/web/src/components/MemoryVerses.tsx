@@ -6,6 +6,7 @@ import { normalizeRef } from '../normalizeRef';
 import { formatRef } from '../utils/formatRef';
 import { MemorySession } from './MemorySession';
 import { OverlayNav } from './OverlayNav';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 import { getStreak, bumpStreak, isStreakActive } from '../utils/streak';
 import { showToast } from '../utils/toast';
 import './MemoryVerses.css';
@@ -42,6 +43,7 @@ export function MemoryVerses({ translation, onClose, onHome, onLibrary, onMemory
   const [addError, setAddError] = useState('');
   const [active, setActive] = useState<MemoryItem | null>(null);
   const [streak, setStreak] = useState(() => getStreak());
+  const trapRef = useFocusTrap<HTMLDivElement>();
 
   useEffect(() => { getAllMemoryItems().then(setItems); }, []);
   const refresh = () => getAllMemoryItems().then(setItems);
@@ -108,7 +110,14 @@ export function MemoryVerses({ translation, onClose, onHome, onLibrary, onMemory
   const memorized = items.filter((i) => i.memorized);
 
   const renderCard = (it: MemoryItem) => (
-    <button key={it.id} className="memverse-card" onClick={() => setActive(it)}>
+    <div
+      key={it.id}
+      className="memverse-card"
+      role="button"
+      tabIndex={0}
+      onClick={() => setActive(it)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActive(it); } }}
+    >
       <div className="memverse-card__main">
         <span className="memverse-card__ref">{it.display}</span>
         {it.topic && <span className="memverse-card__topic">{it.topic}</span>}
@@ -121,13 +130,13 @@ export function MemoryVerses({ translation, onClose, onHome, onLibrary, onMemory
             ? <span className="memverse-card__times">Practiced {it.timesPracticed}×{it.lastPracticed ? ` · ${relativeTime(it.lastPracticed)}` : ''}</span>
             : <span className="memverse-card__times">Not started</span>}
       </div>
-      <span className="memverse-card__remove" role="button" tabIndex={0} onClick={(e) => handleRemove(e, it.id)} aria-label="Remove">×</span>
-    </button>
+      <button className="memverse-card__remove" onClick={(e) => handleRemove(e, it.id)} aria-label={`Remove ${it.display}`}>×</button>
+    </div>
   );
 
   return (
     <div className="memverse-overlay" onClick={onClose}>
-      <div className="memverse-panel" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Memory Verses">
+      <div className="memverse-panel" ref={trapRef} tabIndex={-1} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Memory Verses">
         <OverlayNav current="memory" onHome={onHome} onLibrary={onLibrary} onMemoryVerses={onMemoryVerses} />
         <div className="memverse-header">
           <button className="memverse-back" onClick={onClose}>← Back</button>

@@ -20,6 +20,7 @@ import { formatRef, formatPassageRef } from '../utils/formatRef';
 import { getMethod } from '../study/methods';
 import { OverlayNav } from './OverlayNav';
 import { useEscToClose } from '../hooks/useEscToClose';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 import { showToast } from '../utils/toast';
 import './Library.css';
 
@@ -86,6 +87,7 @@ export function Library({ onOpen, onOpenReflection, onClose, onHome, onLibrary, 
   const importRef = useRef<HTMLInputElement>(null);
 
   useEscToClose(onClose);
+  const trapRef = useFocusTrap<HTMLDivElement>();
 
   useEffect(() => {
     getAllStudies().then(setStudies);
@@ -215,7 +217,7 @@ export function Library({ onOpen, onOpenReflection, onClose, onHome, onLibrary, 
 
   return (
     <div className="library-overlay" onClick={onClose}>
-      <div className="library-panel" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Study library">
+      <div className="library-panel" ref={trapRef} tabIndex={-1} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Study library">
         <OverlayNav current="library" onHome={onHome} onLibrary={onLibrary} onMemoryVerses={onMemoryVerses} />
         <div className="library-header">
           <button className="library-back" onClick={onClose}>

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import type { OriginalWord, VerseWithWords } from '../types';
 import { getVerseTranslation } from '@verse-roots/bible-client';
-import { fetchNivVerse, isApiBibleConfigured } from '../utils/apiBible';
+import { fetchNivVerse } from '../utils/apiBible';
 import { WordChip } from './WordChip';
 import { AddMemoryButton } from './AddMemoryButton';
+import { TranslationBar } from './TranslationBar';
+import { NIV_AVAILABLE, TRANSLATION_ATTRIBUTION } from '../utils/translations';
 import { formatRef } from '../utils';
 import './VerseDisplay.css';
 
@@ -15,19 +17,6 @@ interface VerseDisplayProps {
   onTranslationChange: (t: string) => void;
   onAddToMemory?: (ref: string, scope: 'verse' | 'chapter', display: string) => Promise<'added' | 'exists'>;
 }
-
-// Translations stored in Supabase (always available)
-const SUPABASE_TRANSLATIONS = ['KJV', 'ASV', 'WEB'];
-
-// NIV is fetched from API.Bible when an API key is configured
-const NIV_AVAILABLE = isApiBibleConfigured;
-
-const TRANSLATION_ATTRIBUTION: Record<string, string> = {
-  KJV: 'KJV (public domain)',
-  ASV: 'ASV (public domain)',
-  WEB: 'WEB (public domain)',
-  NIV: 'NIV® Copyright © 1973, 1978, 1984, 2011 by Biblica, Inc.®',
-};
 
 function buildExternalUrl(site: 'ESV' | 'NET', ref: string): string {
   const display = formatRef(ref);
@@ -91,28 +80,7 @@ export function VerseDisplay({
         )}
       </div>
 
-      <div className="translation-bar">
-        <span className="translation-label">Translation:</span>
-        <div className="translation-pills" role="group" aria-label="Translation">
-          {NIV_AVAILABLE && (
-            <button
-              className={`translation-pill${translation === 'NIV' ? ' translation-pill--active' : ''}`}
-              onClick={() => onTranslationChange('NIV')}
-            >
-              NIV
-            </button>
-          )}
-          {SUPABASE_TRANSLATIONS.map((t) => (
-            <button
-              key={t}
-              className={`translation-pill${translation === t ? ' translation-pill--active' : ''}`}
-              onClick={() => onTranslationChange(t)}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-
+      <TranslationBar value={translation} onChange={onTranslationChange}>
         <span className="translation-external-links">
           {(['ESV', 'NET'] as const).map((site) => (
             <a
@@ -136,7 +104,7 @@ export function VerseDisplay({
             </a>
           )}
         </span>
-      </div>
+      </TranslationBar>
 
       {translationText && !transLoading && (
         <blockquote className="translation-text">
@@ -145,6 +113,11 @@ export function VerseDisplay({
             — {TRANSLATION_ATTRIBUTION[translation] ?? translation}
           </footer>
         </blockquote>
+      )}
+      {!translationText && !transLoading && (
+        <p className="translation-unavailable">
+          {translation} text isn’t available for this verse. Try another translation above.
+        </p>
       )}
 
       <div className="verse-words">

@@ -1,23 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { OriginalWord, VerseWithWords, StrongsEntry } from '../types';
 import { getVerseTranslation } from '@verse-roots/bible-client';
-import { fetchNivVerse, isApiBibleConfigured } from '../utils/apiBible';
+import { fetchNivVerse } from '../utils/apiBible';
 import { WordChip } from './WordChip';
 import { SidePanel } from './SidePanel';
 import { AddMemoryButton } from './AddMemoryButton';
+import { TranslationBar } from './TranslationBar';
+import { TRANSLATION_ATTRIBUTION } from '../utils/translations';
 import { formatRef, formatPassageRef, buildPassageRef } from '../utils/formatRef';
 import type { ReflectionSelection } from '../study/types';
 import './ChapterView.css';
-
-const SUPABASE_TRANSLATIONS = ['KJV', 'ASV', 'WEB'];
-const NIV_AVAILABLE = isApiBibleConfigured;
-
-const TRANSLATION_ATTRIBUTION: Record<string, string> = {
-  KJV: 'KJV (public domain)',
-  ASV: 'ASV (public domain)',
-  WEB: 'WEB (public domain)',
-  NIV: 'NIV® Copyright © 1973, 1978, 1984, 2011 by Biblica, Inc.®',
-};
 
 function formatChapterRef(ref: string): string {
   // "Jhn.3" → "John 3"
@@ -231,24 +223,7 @@ export function ChapterView({
             Tap a verse to select it, or tap <strong>▾</strong> to choose specific words within it.
           </p>
         )}
-        <div className="translation-bar">
-          <span className="translation-label">Translation:</span>
-          <div className="translation-pills" role="group" aria-label="Translation">
-            {NIV_AVAILABLE && (
-              <button
-                className={`translation-pill${translation === 'NIV' ? ' translation-pill--active' : ''}`}
-                onClick={() => onTranslationChange('NIV')}
-              >NIV</button>
-            )}
-            {SUPABASE_TRANSLATIONS.map((t) => (
-              <button
-                key={t}
-                className={`translation-pill${translation === t ? ' translation-pill--active' : ''}`}
-                onClick={() => onTranslationChange(t)}
-              >{t}</button>
-            ))}
-          </div>
-        </div>
+        <TranslationBar value={translation} onChange={onTranslationChange} />
       </div>
 
       <div className="chapter-view__verses">
