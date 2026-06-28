@@ -187,6 +187,23 @@ function App() {
     setSelectedStrongs(null);
   }, []);
 
+  // Global section navigation — always reachable from any overlay
+  const goHome = useCallback(() => {
+    setShowLibrary(false);
+    setShowMemoryVerses(false);
+    setReflection(null);
+  }, []);
+  const goLibrary = useCallback(() => {
+    setReflection(null);
+    setShowMemoryVerses(false);
+    setShowLibrary(true);
+  }, []);
+  const goMemoryVerses = useCallback(() => {
+    setReflection(null);
+    setShowLibrary(false);
+    setShowMemoryVerses(true);
+  }, []);
+
   const canGoBack = navHistory.length > 0;
 
   const panelWrapperRef = useRef<HTMLDivElement | null>(null);
@@ -287,6 +304,9 @@ function App() {
           selection={reflection.selection}
           existing={reflection.study}
           onClose={() => setReflection(null)}
+          onHome={goHome}
+          onLibrary={goLibrary}
+          onMemoryVerses={goMemoryVerses}
         />
       )}
 
@@ -295,11 +315,20 @@ function App() {
           onOpen={(ref) => { loadVerse(ref); setShowLibrary(false); }}
           onOpenReflection={(study) => { setReflection({ study }); setShowLibrary(false); }}
           onClose={() => setShowLibrary(false)}
+          onHome={goHome}
+          onLibrary={goLibrary}
+          onMemoryVerses={goMemoryVerses}
         />
       )}
 
       {showMemoryVerses && (
-        <MemoryVerses translation={selectedTranslation} onClose={() => setShowMemoryVerses(false)} />
+        <MemoryVerses
+          translation={selectedTranslation}
+          onClose={() => setShowMemoryVerses(false)}
+          onHome={goHome}
+          onLibrary={goLibrary}
+          onMemoryVerses={goMemoryVerses}
+        />
       )}
       <Footer />
     </div>

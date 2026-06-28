@@ -5,11 +5,15 @@ import { getAllMemoryItems, saveMemoryItem, deleteMemoryItem } from '../study/db
 import { normalizeRef } from '../normalizeRef';
 import { formatRef } from '../utils/formatRef';
 import { MemorySession } from './MemorySession';
+import { OverlayNav } from './OverlayNav';
 import './MemoryVerses.css';
 
 interface MemoryVersesProps {
   translation: string;
   onClose: () => void;
+  onHome: () => void;
+  onLibrary: () => void;
+  onMemoryVerses: () => void;
 }
 
 function toFirstVerseRef(displayRef: string): string {
@@ -30,7 +34,7 @@ function relativeTime(ts: number): string {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-export function MemoryVerses({ translation, onClose }: MemoryVersesProps) {
+export function MemoryVerses({ translation, onClose, onHome, onLibrary, onMemoryVerses }: MemoryVersesProps) {
   const [items, setItems] = useState<MemoryItem[]>([]);
   const [addInput, setAddInput] = useState('');
   const [addError, setAddError] = useState('');
@@ -84,6 +88,7 @@ export function MemoryVerses({ translation, onClose }: MemoryVersesProps) {
   return (
     <div className="memverse-overlay" onClick={onClose}>
       <div className="memverse-panel" onClick={(e) => e.stopPropagation()}>
+        <OverlayNav current="memory" onHome={onHome} onLibrary={onLibrary} onMemoryVerses={onMemoryVerses} />
         <div className="memverse-header">
           <button className="memverse-back" onClick={onClose}>← Back</button>
           <h2 className="memverse-title">Memory Verses</h2>
@@ -167,7 +172,13 @@ export function MemoryVerses({ translation, onClose }: MemoryVersesProps) {
       </div>
 
       {active && (
-        <MemorySession item={active} translation={translation} onClose={() => setActive(null)} onPracticed={handlePracticed} />
+        <MemorySession
+          item={active}
+          translation={translation}
+          onClose={() => setActive(null)}
+          onHome={onHome}
+          onPracticed={handlePracticed}
+        />
       )}
     </div>
   );

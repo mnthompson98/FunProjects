@@ -3,6 +3,7 @@ import type { Study, StudySection, ReflectionSelection } from '../study/types';
 import { STUDY_METHODS, getMethod } from '../study/methods';
 import { saveStudy, deleteStudy } from '../study/db';
 import { formatPassageRef } from '../utils/formatRef';
+import { OverlayNav } from './OverlayNav';
 import './ReflectionPanel.css';
 
 const DEFAULT_METHOD = 'four-rs';
@@ -12,6 +13,9 @@ interface ReflectionPanelProps {
   existing?: Study;                // reopened from library
   onClose: () => void;
   onSaved?: (study: Study) => void;
+  onHome: () => void;
+  onLibrary: () => void;
+  onMemoryVerses: () => void;
 }
 
 function sectionsForMethod(methodId: string): StudySection[] {
@@ -38,7 +42,7 @@ function createReflection(selection: ReflectionSelection, methodId: string): Stu
   };
 }
 
-export function ReflectionPanel({ selection, existing, onClose, onSaved }: ReflectionPanelProps) {
+export function ReflectionPanel({ selection, existing, onClose, onSaved, onHome, onLibrary, onMemoryVerses }: ReflectionPanelProps) {
   const [study, setStudy] = useState<Study>(() =>
     existing ?? createReflection(selection!, DEFAULT_METHOD),
   );
@@ -128,6 +132,7 @@ export function ReflectionPanel({ selection, existing, onClose, onSaved }: Refle
   return (
     <div className="reflection-overlay" onClick={onClose}>
       <div className="reflection-panel" onClick={(e) => e.stopPropagation()}>
+        <OverlayNav current="reflection" onHome={onHome} onLibrary={onLibrary} onMemoryVerses={onMemoryVerses} />
         <div className="reflection-panel__header">
           <div className="reflection-panel__heading">
             <span className="reflection-panel__kind">Reflection</span>

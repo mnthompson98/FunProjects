@@ -12,12 +12,13 @@ interface MemorySessionProps {
   item: MemoryItem;
   translation: string;
   onClose: () => void;
+  onHome: () => void;
   onPracticed: (item: MemoryItem) => void;
 }
 
 type Mode = 'learning' | 'quiz' | 'builder';
 
-export function MemorySession({ item, translation, onClose, onPracticed }: MemorySessionProps) {
+export function MemorySession({ item, translation, onClose, onHome, onPracticed }: MemorySessionProps) {
   const [mode, setMode] = useState<Mode>('learning');
   const [trans, setTrans] = useState(translation);
   const [fullText, setFullText] = useState<string | null>(null);
@@ -66,6 +67,7 @@ export function MemorySession({ item, translation, onClose, onPracticed }: Memor
       <div className="memsession" onClick={(e) => e.stopPropagation()}>
         <div className="memsession__header">
           <button className="memsession__back" onClick={onClose}>← My List</button>
+          <button className="memsession__back" onClick={onHome}>⌂ Home</button>
           <div className="memsession__ref">
             {item.topic && <span className="memsession__topic">{item.topic}</span>}
             {item.display}

@@ -18,6 +18,7 @@ import type { StudyGroup } from '../study/types';
 import { getAllStudies, deleteStudy, saveStudy, getAllGroups, saveGroup, deleteGroup } from '../study/db';
 import { formatRef, formatPassageRef } from '../utils/formatRef';
 import { getMethod } from '../study/methods';
+import { OverlayNav } from './OverlayNav';
 import './Library.css';
 
 type KindFilter = 'all' | 'word' | 'passage';
@@ -38,6 +39,9 @@ interface LibraryProps {
   onOpen: (verseRef: string) => void;
   onOpenReflection?: (study: Study) => void;
   onClose: () => void;
+  onHome: () => void;
+  onLibrary: () => void;
+  onMemoryVerses: () => void;
 }
 
 function relativeTime(ts: number): string {
@@ -62,7 +66,7 @@ function getContextSnippet(study: Study): string {
   return text.length > 100 ? text.slice(0, 100) + '…' : text;
 }
 
-export function Library({ onOpen, onOpenReflection, onClose }: LibraryProps) {
+export function Library({ onOpen, onOpenReflection, onClose, onHome, onLibrary, onMemoryVerses }: LibraryProps) {
   const [studies, setStudies] = useState<Study[]>([]);
   const [groups, setGroups] = useState<StudyGroup[]>([]);
   const [kindFilter, setKindFilter] = useState<KindFilter>('all');
@@ -195,6 +199,7 @@ export function Library({ onOpen, onOpenReflection, onClose }: LibraryProps) {
   return (
     <div className="library-overlay" onClick={onClose}>
       <div className="library-panel" onClick={(e) => e.stopPropagation()}>
+        <OverlayNav current="library" onHome={onHome} onLibrary={onLibrary} onMemoryVerses={onMemoryVerses} />
         <div className="library-header">
           <button className="library-back" onClick={onClose}>
             ← Back
