@@ -5,6 +5,7 @@ import { saveStudy, deleteStudy } from '../study/db';
 import { formatPassageRef } from '../utils/formatRef';
 import { OverlayNav } from './OverlayNav';
 import { useEscToClose } from '../hooks/useEscToClose';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 import './ReflectionPanel.css';
 
 const DEFAULT_METHOD = 'four-rs';
@@ -49,6 +50,7 @@ export function ReflectionPanel({ selection, existing, onClose, onSaved, onHome,
   );
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   useEscToClose(onClose);
+  const trapRef = useFocusTrap<HTMLDivElement>();
 
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fadeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -133,7 +135,7 @@ export function ReflectionPanel({ selection, existing, onClose, onSaved, onHome,
 
   return (
     <div className="reflection-overlay" onClick={onClose}>
-      <div className="reflection-panel" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Reflection editor">
+      <div className="reflection-panel" ref={trapRef} tabIndex={-1} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Reflection editor">
         <OverlayNav current="reflection" onHome={onHome} onLibrary={onLibrary} onMemoryVerses={onMemoryVerses} />
         <div className="reflection-panel__header">
           <div className="reflection-panel__heading">
