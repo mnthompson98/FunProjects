@@ -55,4 +55,5 @@ export interface StudyGroup {
   name: string;
   color: string;
   createdAt: number;
+  parentId?: string | null; // when set, this is a sub-group of another group
 }

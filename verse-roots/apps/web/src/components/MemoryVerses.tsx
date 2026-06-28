@@ -43,6 +43,20 @@ export function MemoryVerses({ translation, onClose, onHome, onLibrary, onMemory
   useEffect(() => { getAllMemoryItems().then(setItems); }, []);
   const refresh = () => getAllMemoryItems().then(setItems);
 
+  // Escape closes the open session first, then the Memory Verses tab
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      setActive((cur) => {
+        if (cur) return null;
+        onClose();
+        return cur;
+      });
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [onClose]);
+
   const addItem = async (ref: string, scope: 'verse' | 'chapter', display: string, opts?: { topic?: string; source?: 'tms' | 'custom' }) => {
     if (items.some((i) => i.ref === ref)) return false;
     const item: MemoryItem = {
@@ -107,7 +121,7 @@ export function MemoryVerses({ translation, onClose, onHome, onLibrary, onMemory
 
   return (
     <div className="memverse-overlay" onClick={onClose}>
-      <div className="memverse-panel" onClick={(e) => e.stopPropagation()}>
+      <div className="memverse-panel" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Memory Verses">
         <OverlayNav current="memory" onHome={onHome} onLibrary={onLibrary} onMemoryVerses={onMemoryVerses} />
         <div className="memverse-header">
           <button className="memverse-back" onClick={onClose}>← Back</button>

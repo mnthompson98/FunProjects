@@ -163,8 +163,18 @@ function App() {
     setSelectedStrongs(null);
   }, []);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleStudySaved = useCallback((_study: Study) => {}, []);
+  // Open the Reflection editor for a single verse (from the word panel)
+  const reflectOnVerse = useCallback((verseRef: string) => {
+    setReflection({
+      selection: {
+        passageRef: verseRef,
+        startVerseRef: verseRef,
+        verseRefs: [verseRef],
+        wordIds: [],
+        snapshot: { text: '', wordIds: [] },
+      },
+    });
+  }, []);
 
   const addToMemory = useCallback(
     async (ref: string, scope: 'verse' | 'chapter', display: string): Promise<'added' | 'exists'> => {
@@ -279,7 +289,7 @@ function App() {
               selectedStrongs={strongsLoading ? null : selectedStrongs}
               onPanelClose={handlePanelClose}
               onNavigate={handleConcordanceNavigate}
-              onStudySaved={handleStudySaved}
+              onReflectVerse={reflectOnVerse}
               onStartReflection={(sel) => setReflection({ selection: sel })}
               onAddToMemory={addToMemory}
             />
@@ -293,7 +303,7 @@ function App() {
               strongs={strongsLoading ? null : selectedStrongs}
               onClose={handlePanelClose}
               onNavigate={handleConcordanceNavigate}
-              onStudySaved={handleStudySaved}
+              onReflect={reflectOnVerse}
             />
           </div>
         )}

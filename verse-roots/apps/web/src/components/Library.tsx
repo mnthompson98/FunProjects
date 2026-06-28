@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, Fragment } from 'react';
 
 const ALL_BOOKS = [
   'Genesis','Exodus','Leviticus','Numbers','Deuteronomy','Joshua','Judges','Ruth',
@@ -19,6 +19,7 @@ import { getAllStudies, deleteStudy, saveStudy, getAllGroups, saveGroup, deleteG
 import { formatRef, formatPassageRef } from '../utils/formatRef';
 import { getMethod } from '../study/methods';
 import { OverlayNav } from './OverlayNav';
+import { useEscToClose } from '../hooks/useEscToClose';
 import './Library.css';
 
 type KindFilter = 'all' | 'word' | 'passage';
@@ -26,6 +27,9 @@ type KindFilter = 'all' | 'word' | 'passage';
 function studyKind(study: Study): 'word' | 'passage' {
   return study.kind === 'passage' ? 'passage' : 'word';
 }
+
+const topLevelGroups = (groups: StudyGroup[]) => groups.filter((g) => !g.parentId);
+const childGroups = (groups: StudyGroup[], parentId: string) => groups.filter((g) => g.parentId === parentId);
 
 function studyDisplayRef(study: Study): string {
   return studyKind(study) === 'passage' && study.passageRef
@@ -73,11 +77,14 @@ export function Library({ onOpen, onOpenReflection, onClose, onHome, onLibrary, 
   const [groupFilter, setGroupFilter] = useState('');
   const [newGroupName, setNewGroupName] = useState('');
   const [showGroupInput, setShowGroupInput] = useState(false);
+  const [subParentId, setSubParentId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [bookFilter, setBookFilter] = useState('');
   const [wordsFilter, setWordsFilter] = useState('');
   const [importError, setImportError] = useState('');
   const importRef = useRef<HTMLInputElement>(null);
+
+  useEscToClose(onClose);
 
   useEffect(() => {
     getAllStudies().then(setStudies);
@@ -116,26 +123,32 @@ export function Library({ onOpen, onOpenReflection, onClose, onHome, onLibrary, 
   const handleCreateGroup = async () => {
     const name = newGroupName.trim();
     if (!name) return;
+    const parent = subParentId ? groups.find((g) => g.id === subParentId) : null;
     const group: StudyGroup = {
       id: crypto.randomUUID(),
       name,
-      color: GROUP_COLORS[groups.length % GROUP_COLORS.length],
+      // Sub-groups inherit the parent's color so they read as a family
+      color: parent ? parent.color : GROUP_COLORS[topLevelGroups(groups).length % GROUP_COLORS.length],
       createdAt: Date.now(),
+      parentId: subParentId ?? null,
     };
     await saveGroup(group);
     setGroups((prev) => [...prev, group]);
     setNewGroupName('');
-    setShowGroupInput(false);
+    setSubParentId(null);
+    // keep the manager open so several groups can be added in a row
   };
 
   const handleDeleteGroup = async (id: string) => {
-    await deleteGroup(id);
-    // Un-assign studies in this group
-    const affected = studies.filter((s) => s.groupId === id);
+    // Deleting a parent also removes its sub-groups
+    const ids = [id, ...childGroups(groups, id).map((g) => g.id)];
+    await Promise.all(ids.map((gid) => deleteGroup(gid)));
+    const affected = studies.filter((s) => s.groupId && ids.includes(s.groupId));
     await Promise.all(affected.map((s) => saveStudy({ ...s, groupId: null })));
-    setStudies((prev) => prev.map((s) => s.groupId === id ? { ...s, groupId: null } : s));
-    setGroups((prev) => prev.filter((g) => g.id !== id));
-    if (groupFilter === id) setGroupFilter('');
+    setStudies((prev) => prev.map((s) => (s.groupId && ids.includes(s.groupId)) ? { ...s, groupId: null } : s));
+    setGroups((prev) => prev.filter((g) => !ids.includes(g.id)));
+    if (ids.includes(groupFilter)) setGroupFilter('');
+    if (subParentId && ids.includes(subParentId)) setSubParentId(null);
   };
 
   const handleAssignGroup = async (study: Study, groupId: string | null) => {
@@ -167,7 +180,9 @@ export function Library({ onOpen, onOpenReflection, onClose, onHome, onLibrary, 
         if (groupFilter === '__none__') {
           if (s.groupId) return false;
         } else {
-          if (s.groupId !== groupFilter) return false;
+          // A parent group also matches studies in its sub-groups
+          const allowed = new Set([groupFilter, ...childGroups(groups, groupFilter).map((g) => g.id)]);
+          if (!s.groupId || !allowed.has(s.groupId)) return false;
         }
       }
       if (search) {
@@ -178,7 +193,7 @@ export function Library({ onOpen, onOpenReflection, onClose, onHome, onLibrary, 
       }
       return true;
     });
-  }, [studies, search, bookFilter, wordsFilter, groupFilter, kindFilter]);
+  }, [studies, search, bookFilter, wordsFilter, groupFilter, kindFilter, groups]);
 
   const handleOpen = (study: Study) => {
     if (studyKind(study) === 'passage' && onOpenReflection) {
@@ -198,7 +213,7 @@ export function Library({ onOpen, onOpenReflection, onClose, onHome, onLibrary, 
 
   return (
     <div className="library-overlay" onClick={onClose}>
-      <div className="library-panel" onClick={(e) => e.stopPropagation()}>
+      <div className="library-panel" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Study library">
         <OverlayNav current="library" onHome={onHome} onLibrary={onLibrary} onMemoryVerses={onMemoryVerses} />
         <div className="library-header">
           <button className="library-back" onClick={onClose}>
@@ -233,27 +248,50 @@ export function Library({ onOpen, onOpenReflection, onClose, onHome, onLibrary, 
             <div className="library-group-manager__create">
               <input
                 className="library-group-input"
-                placeholder="New group name…"
+                placeholder={subParentId
+                  ? `Sub-group under “${groups.find((g) => g.id === subParentId)?.name ?? ''}”…`
+                  : 'New group name…'}
                 value={newGroupName}
                 onChange={(e) => setNewGroupName(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleCreateGroup(); }}
                 autoFocus
               />
               <button className="library-action-btn" onClick={handleCreateGroup} disabled={!newGroupName.trim()}>
-                Create
+                {subParentId ? 'Add sub' : 'Create'}
               </button>
+              {subParentId && (
+                <button className="library-action-btn" onClick={() => setSubParentId(null)}>Cancel</button>
+              )}
             </div>
             {groups.length > 0 && (
               <div className="library-group-manager__list">
-                {groups.map((g) => (
-                  <div key={g.id} className="library-group-manager__item">
-                    <span className="library-group-manager__dot" style={{ background: g.color }} />
-                    <span className="library-group-manager__name">{g.name}</span>
-                    <button
-                      className="library-group-manager__delete"
-                      onClick={() => handleDeleteGroup(g.id)}
-                      aria-label={`Delete group ${g.name}`}
-                    >×</button>
+                {topLevelGroups(groups).map((g) => (
+                  <div key={g.id}>
+                    <div className="library-group-manager__item">
+                      <span className="library-group-manager__dot" style={{ background: g.color }} />
+                      <span className="library-group-manager__name">{g.name}</span>
+                      <button
+                        className="library-group-manager__sub"
+                        onClick={() => setSubParentId(g.id)}
+                        title={`Add a sub-group under ${g.name}`}
+                      >+ Sub-group</button>
+                      <button
+                        className="library-group-manager__delete"
+                        onClick={() => handleDeleteGroup(g.id)}
+                        aria-label={`Delete group ${g.name}`}
+                      >×</button>
+                    </div>
+                    {childGroups(groups, g.id).map((c) => (
+                      <div key={c.id} className="library-group-manager__item library-group-manager__item--child">
+                        <span className="library-group-manager__dot" style={{ background: c.color }} />
+                        <span className="library-group-manager__name">↳ {c.name}</span>
+                        <button
+                          className="library-group-manager__delete"
+                          onClick={() => handleDeleteGroup(c.id)}
+                          aria-label={`Delete sub-group ${c.name}`}
+                        >×</button>
+                      </div>
+                    ))}
                   </div>
                 ))}
               </div>
@@ -320,16 +358,28 @@ export function Library({ onOpen, onOpenReflection, onClose, onHome, onLibrary, 
               className={`library-group-pill${groupFilter === '' ? ' library-group-pill--active' : ''}`}
               onClick={() => setGroupFilter('')}
             >All</button>
-            {groups.map((g) => (
-              <button
-                key={g.id}
-                className={`library-group-pill${groupFilter === g.id ? ' library-group-pill--active' : ''}`}
-                style={{ '--group-color': g.color } as React.CSSProperties}
-                onClick={() => setGroupFilter(g.id)}
-              >
-                <span className="library-group-pill__dot" />
-                {g.name}
-              </button>
+            {topLevelGroups(groups).map((g) => (
+              <Fragment key={g.id}>
+                <button
+                  className={`library-group-pill${groupFilter === g.id ? ' library-group-pill--active' : ''}`}
+                  style={{ '--group-color': g.color } as React.CSSProperties}
+                  onClick={() => setGroupFilter(g.id)}
+                >
+                  <span className="library-group-pill__dot" />
+                  {g.name}
+                </button>
+                {childGroups(groups, g.id).map((c) => (
+                  <button
+                    key={c.id}
+                    className={`library-group-pill library-group-pill--child${groupFilter === c.id ? ' library-group-pill--active' : ''}`}
+                    style={{ '--group-color': c.color } as React.CSSProperties}
+                    onClick={() => setGroupFilter(c.id)}
+                  >
+                    <span className="library-group-pill__dot" />
+                    {c.name}
+                  </button>
+                ))}
+              </Fragment>
             ))}
             <button
               className={`library-group-pill${groupFilter === '__none__' ? ' library-group-pill--active' : ''}`}
@@ -417,14 +467,24 @@ function StudyCard({ study, groups, onClick, onDelete, onAssignGroup }: StudyCar
           <button className="study-card__group-option" onClick={() => { onAssignGroup(null); setShowGroupSelect(false); }}>
             No group
           </button>
-          {groups.map((g) => (
-            <button
-              key={g.id}
-              className={`study-card__group-option${study.groupId === g.id ? ' study-card__group-option--active' : ''}`}
-              onClick={() => { onAssignGroup(g.id); setShowGroupSelect(false); }}
-            >
-              <span className="study-card__group-dot" style={{ background: g.color }} />{g.name}
-            </button>
+          {topLevelGroups(groups).map((g) => (
+            <Fragment key={g.id}>
+              <button
+                className={`study-card__group-option${study.groupId === g.id ? ' study-card__group-option--active' : ''}`}
+                onClick={() => { onAssignGroup(g.id); setShowGroupSelect(false); }}
+              >
+                <span className="study-card__group-dot" style={{ background: g.color }} />{g.name}
+              </button>
+              {childGroups(groups, g.id).map((c) => (
+                <button
+                  key={c.id}
+                  className={`study-card__group-option study-card__group-option--child${study.groupId === c.id ? ' study-card__group-option--active' : ''}`}
+                  onClick={() => { onAssignGroup(c.id); setShowGroupSelect(false); }}
+                >
+                  <span className="study-card__group-dot" style={{ background: c.color }} />↳ {c.name}
+                </button>
+              ))}
+            </Fragment>
           ))}
         </div>
       )}
