@@ -66,3 +66,12 @@
   border-color: var(--accent-dim);
   background: var(--accent-light);
 }
+
+@media (max-width: 768px) {
+  .header { padding: 0 1rem; }
+  /* Tagline wraps and overflows the fixed-height header on small screens */
+  .header-tagline { display: none; }
+  .header-inner { gap: 0.5rem; }
+  .header-actions { gap: 0.4rem; }
+  .header-library-btn { font-size: 0.72rem; padding: 0.35rem 0.65rem; }
+}
