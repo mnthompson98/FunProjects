@@ -7,6 +7,8 @@ import { ChapterView } from './components/ChapterView';
 import { SidePanel } from './components/SidePanel';
 import { Library } from './components/Library';
 import { MemoryVerses } from './components/MemoryVerses';
+import { BookOverview } from './components/BookOverview';
+import { isBookCode } from './utils/bibleBooks';
 import { normalizeRef } from './normalizeRef';
 import type { OriginalWord, VerseWithWords, StrongsEntry } from './types';
 import { getVerse, getStrongs, getChapter } from '@verse-roots/bible-client';
@@ -51,6 +53,7 @@ function App() {
   const [navHistory, setNavHistory] = useState<NavSnapshot[]>([]);
   const [reflection, setReflection] = useState<{ selection?: ReflectionSelection; study?: Study } | null>(null);
   const [recent, setRecent] = useState<RecentVerse[]>(() => getRecentVerses());
+  const [bookView, setBookView] = useState<string | null>(null);
 
   // Always-current snapshot so loadVerse can push it without stale closures
   const snapshotRef = useRef<NavSnapshot>({
@@ -68,6 +71,7 @@ function App() {
     setExpandedVerseRef(snap.expandedVerseRef);
     setSelectedWord(snap.selectedWord);
     setSelectedStrongs(snap.selectedStrongs);
+    setBookView(null);
     setError(null);
   }, []);
 
@@ -111,6 +115,7 @@ function App() {
     setExpandedVerseRef(null);
     setSelectedWord(null);
     setSelectedStrongs(null);
+    setBookView(null);
 
     try {
       const parts = ref.split('.');
@@ -152,9 +157,30 @@ function App() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const openBook = useCallback((osis: string) => {
+    // Push the current view so in-app back still works
+    const current = snapshotRef.current;
+    if (current.verse || current.chapter) {
+      setNavHistory((prev) => [...prev, current]);
+      window.history.pushState({ depth: 1 }, '');
+    }
+    setVerse(null);
+    setChapter(null);
+    setChapterRef(null);
+    setSelectedWord(null);
+    setSelectedStrongs(null);
+    setError(null);
+    setBookView(osis);
+  }, []);
+
   const handleRefSubmit = useCallback(async (raw: string) => {
-    await loadVerse(normalizeRef(raw));
-  }, [loadVerse]);
+    const ref = normalizeRef(raw);
+    if (isBookCode(ref)) {
+      openBook(ref);
+    } else {
+      await loadVerse(ref);
+    }
+  }, [loadVerse, openBook]);
 
   const handleConcordanceNavigate = useCallback((osisRef: string, strongs: string) => {
     loadVerse(osisRef, strongs);
@@ -270,12 +296,16 @@ function App() {
 
       <main className="app-workspace">
         <div className="app-main-col">
-          {!verse && !chapter && !loading && (
+          {bookView && !verse && !chapter && !loading && (
+            <BookOverview bookOsis={bookView} onOpenChapter={(ref) => loadVerse(ref)} />
+          )}
+
+          {!verse && !chapter && !loading && !bookView && (
             <div className="app-empty">
               <div className="app-empty__icon">✦</div>
               <p className="app-empty__title">Explore Scripture in its original language</p>
               <p className="app-empty__hint">
-                Enter a verse like <em>John 3:16</em> to study a single verse, or a chapter like <em>John 3</em> to browse and select from all its verses.
+                Enter a verse like <em>John 3:16</em>, a chapter like <em>John 3</em>, or a whole book like <em>John</em> to pick a chapter and read straight through.
               </p>
               {recent.length > 0 && (
                 <div className="app-recent">
@@ -321,6 +351,7 @@ function App() {
               onReflectVerse={reflectOnVerse}
               onStartReflection={(sel) => setReflection({ selection: sel })}
               onAddToMemory={addToMemory}
+              onChangeChapter={(ref) => { loadVerse(ref); window.scrollTo({ top: 0 }); }}
             />
           )}
         </div>

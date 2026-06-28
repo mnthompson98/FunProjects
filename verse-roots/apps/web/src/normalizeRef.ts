@@ -102,5 +102,9 @@ export function normalizeRef(input: string): string {
     return trimmed;
   }
 
+  // Book-only: "John", "1 Kings", "Psalms" → just the book code
+  const bookCode = BOOK_MAP[trimmed.toLowerCase().replace(/\s+/g, '')];
+  if (bookCode) return bookCode;
+
   return trimmed;
 }

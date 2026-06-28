@@ -19,6 +19,43 @@
 }
 .chapter-view__addmem { margin-left: auto; }
 
+/* Compact prev/next in the header */
+.chapter-nav-mini { display: inline-flex; gap: 0.3rem; align-self: center; }
+.chapter-nav-mini__btn {
+  width: 1.7rem; height: 1.7rem; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--surface2); border: 1px solid var(--border-strong);
+  border-radius: 50%; color: var(--text); font-size: 1.05rem; line-height: 1; cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+.chapter-nav-mini__btn:hover:not(:disabled) { background: var(--accent); color: #0F0D0B; border-color: var(--accent); }
+.chapter-nav-mini__btn:disabled { opacity: 0.3; cursor: default; }
+
+/* Full chapter nav bar (below the verses) */
+.chapter-nav {
+  display: flex; gap: 0.75rem; margin-top: 1.5rem;
+}
+.chapter-nav__btn {
+  flex: 1; display: flex; align-items: center; gap: 0.6rem;
+  background: var(--surface); border: 1px solid var(--border-strong);
+  border-radius: var(--radius); color: var(--text);
+  padding: 0.85rem 1.1rem; cursor: pointer; min-width: 0;
+  transition: background var(--transition), border-color var(--transition), transform var(--transition);
+}
+.chapter-nav__btn--next { justify-content: flex-end; text-align: right; }
+.chapter-nav__btn:hover:not(:disabled) { background: var(--surface2); border-color: var(--accent-dim); transform: translateY(-1px); }
+.chapter-nav__btn:disabled { opacity: 0.4; cursor: default; }
+.chapter-nav__arrow { color: var(--accent); font-size: 1.1rem; flex-shrink: 0; }
+.chapter-nav__label {
+  display: flex; flex-direction: column; min-width: 0;
+  font-family: var(--font-serif); font-size: 1.02rem; font-weight: 300;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.chapter-nav__dir {
+  font-family: var(--font-sans); font-size: 0.6rem; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-subtle);
+}
+.chapter-nav__edge { font-size: 0.78rem; color: var(--text-subtle); font-style: italic; }
+
 .chapter-view__ref {
   font-family: var(--font-serif);
   font-size: 2rem;
