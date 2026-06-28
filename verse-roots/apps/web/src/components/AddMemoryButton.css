@@ -1,0 +1,16 @@
+.add-memory-btn {
+  background: var(--accent-light);
+  border: 1px solid var(--accent-dim);
+  color: var(--accent);
+  font-family: var(--font-sans);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0.3rem 0.75rem;
+  border-radius: 99px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+.add-memory-btn:hover:not(:disabled) { background: var(--accent); color: #0F0D0B; border-color: var(--accent); }
+.add-memory-btn--done { color: var(--text-muted); background: var(--surface2); border-color: var(--border-strong); cursor: default; }

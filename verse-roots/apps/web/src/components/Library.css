@@ -87,6 +87,42 @@
 .study-card__word { font-size: 0.78rem; color: var(--earth); font-family: var(--font-serif); font-style: italic; font-weight: 300; margin-bottom: 0.25rem; }
 .study-card__snippet { font-size: 0.76rem; color: var(--text-muted); font-style: italic; line-height: 1.55; }
 
+.study-card__method {
+  display: flex; align-items: center; gap: 0.4rem;
+  font-size: 0.76rem; color: var(--text-muted); margin-bottom: 0.3rem;
+}
+.study-card__kind-tag {
+  font-size: 0.6rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--accent); background: var(--accent-light);
+  border: 1px solid var(--accent-dim); border-radius: 99px;
+  padding: 0.05rem 0.45rem;
+}
+.study-card__passage-quote {
+  font-family: var(--font-serif); font-style: italic; font-weight: 300;
+  font-size: 0.82rem; color: var(--text); line-height: 1.5;
+  margin-bottom: 0.3rem;
+  border-left: 2px solid var(--accent-dim); padding-left: 0.55rem;
+}
+
+/* Kind filter (All / Word / Reflection) */
+.library-kinds {
+  display: flex; gap: 0.4rem;
+  padding: 0.7rem 1.5rem 0;
+}
+.library-kind-tab {
+  background: none; border: 1px solid var(--border-strong);
+  border-radius: 99px; color: var(--text-muted);
+  font-size: 0.74rem; font-family: var(--font-sans); font-weight: 500;
+  padding: 0.25rem 0.8rem; cursor: pointer;
+  transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+.library-kind-tab:hover { color: var(--text); border-color: var(--accent-dim); }
+.library-kind-tab--active {
+  color: var(--accent); border-color: var(--accent-dim); background: var(--accent-light);
+}
+.library-kind-tab__count { color: var(--text-subtle); font-size: 0.68rem; }
+.library-kind-tab--active .library-kind-tab__count { color: var(--accent); }
+
 .study-card__delete {
   position: absolute; top: 0.7rem; right: 0.7rem;
   background: none; border: none; color: var(--text-subtle);

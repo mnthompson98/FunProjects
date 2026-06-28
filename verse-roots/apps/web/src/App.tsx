@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useLayoutEffect } from 'react';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { ReferenceInput } from './components/ReferenceInput';
@@ -6,11 +6,14 @@ import { VerseDisplay } from './components/VerseDisplay';
 import { ChapterView } from './components/ChapterView';
 import { SidePanel } from './components/SidePanel';
 import { Library } from './components/Library';
+import { MemoryVerses } from './components/MemoryVerses';
 import { normalizeRef } from './normalizeRef';
 import type { OriginalWord, VerseWithWords, StrongsEntry } from './types';
 import { getVerse, getStrongs, getChapter } from '@verse-roots/bible-client';
 import { isApiBibleConfigured } from './utils/apiBible';
-import type { Study } from './study/types';
+import { ReflectionPanel } from './components/ReflectionPanel';
+import { getAllMemoryItems, saveMemoryItem } from './study/db';
+import type { Study, ReflectionSelection } from './study/types';
 import './App.css';
 
 interface NavSnapshot {
@@ -33,10 +36,12 @@ function App() {
   const [selectedStrongs, setSelectedStrongs] = useState<StrongsEntry | null>(null);
   const [strongsLoading, setStrongsLoading] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
+  const [showMemoryVerses, setShowMemoryVerses] = useState(false);
   const [selectedTranslation, setSelectedTranslation] = useState(
     isApiBibleConfigured ? 'NIV' : 'KJV'
   );
   const [navHistory, setNavHistory] = useState<NavSnapshot[]>([]);
+  const [reflection, setReflection] = useState<{ selection?: ReflectionSelection; study?: Study } | null>(null);
 
   // Always-current snapshot so loadVerse can push it without stale closures
   const snapshotRef = useRef<NavSnapshot>({
@@ -161,35 +166,70 @@ function App() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleStudySaved = useCallback((_study: Study) => {}, []);
 
+  const addToMemory = useCallback(
+    async (ref: string, scope: 'verse' | 'chapter', display: string): Promise<'added' | 'exists'> => {
+      const all = await getAllMemoryItems();
+      if (all.some((i) => i.ref === ref)) return 'exists';
+      await saveMemoryItem({
+        id: crypto.randomUUID(),
+        ref, scope, display,
+        source: 'custom',
+        addedAt: Date.now(),
+      });
+      return 'added';
+    },
+    [],
+  );
+
   const handleVerseExpand = useCallback((ref: string) => {
     setExpandedVerseRef((prev) => prev === ref ? null : ref);
     setSelectedWord(null);
     setSelectedStrongs(null);
   }, []);
 
+  // Global section navigation — always reachable from any overlay
+  const goHome = useCallback(() => {
+    setShowLibrary(false);
+    setShowMemoryVerses(false);
+    setReflection(null);
+  }, []);
+  const goLibrary = useCallback(() => {
+    setReflection(null);
+    setShowMemoryVerses(false);
+    setShowLibrary(true);
+  }, []);
+  const goMemoryVerses = useCallback(() => {
+    setReflection(null);
+    setShowLibrary(false);
+    setShowMemoryVerses(true);
+  }, []);
+
   const canGoBack = navHistory.length > 0;
 
-  const sidePanelScrollRef = useCallback((node: HTMLDivElement | null) => {
-    if (!node) return;
+  const panelWrapperRef = useRef<HTMLDivElement | null>(null);
+  useLayoutEffect(() => {
+    if (!selectedWord || !panelWrapperRef.current) return;
+    const node = panelWrapperRef.current;
     const timer = setTimeout(() => {
-      const HEADER = 60;
-      const fromTop = node.getBoundingClientRect().top;
-      const currentScroll =
-        window.pageYOffset ??
-        document.documentElement.scrollTop ??
-        document.body.scrollTop ??
-        0;
-      const target = Math.max(0, currentScroll + fromTop - HEADER);
+      // offsetTop traversal: reliable on iOS Safari PWA
+      let top = 0;
+      let el: HTMLElement | null = node;
+      while (el) { top += el.offsetTop; el = el.offsetParent as HTMLElement | null; }
+      const HEADER = 76; // 60px header + 16px breathing room
+      const target = Math.max(0, top - HEADER);
       window.scroll(0, target);
       document.documentElement.scrollTop = target;
       document.body.scrollTop = target;
-    }, 200);
+    }, 300);
     return () => clearTimeout(timer);
-  }, []);
+  }, [selectedWord?.id]); // re-fires each time a different word is selected
 
   return (
     <div className="app">
-      <Header onOpenLibrary={() => setShowLibrary(true)} />
+      <Header
+        onOpenLibrary={() => setShowLibrary(true)}
+        onOpenMemoryVerses={() => setShowMemoryVerses(true)}
+      />
 
       <div className="app-search">
         <div className="app-search__inner">
@@ -221,6 +261,7 @@ function App() {
               onWordClick={handleWordClick}
               translation={selectedTranslation}
               onTranslationChange={setSelectedTranslation}
+              onAddToMemory={addToMemory}
             />
           )}
 
@@ -239,12 +280,14 @@ function App() {
               onPanelClose={handlePanelClose}
               onNavigate={handleConcordanceNavigate}
               onStudySaved={handleStudySaved}
+              onStartReflection={(sel) => setReflection({ selection: sel })}
+              onAddToMemory={addToMemory}
             />
           )}
         </div>
 
         {verse && selectedWord && (
-          <div ref={sidePanelScrollRef}>
+          <div ref={panelWrapperRef}>
             <SidePanel
               word={selectedWord}
               strongs={strongsLoading ? null : selectedStrongs}
@@ -256,10 +299,35 @@ function App() {
         )}
       </main>
 
+      {reflection && (
+        <ReflectionPanel
+          selection={reflection.selection}
+          existing={reflection.study}
+          onClose={() => setReflection(null)}
+          onHome={goHome}
+          onLibrary={goLibrary}
+          onMemoryVerses={goMemoryVerses}
+        />
+      )}
+
       {showLibrary && (
         <Library
           onOpen={(ref) => { loadVerse(ref); setShowLibrary(false); }}
+          onOpenReflection={(study) => { setReflection({ study }); setShowLibrary(false); }}
           onClose={() => setShowLibrary(false)}
+          onHome={goHome}
+          onLibrary={goLibrary}
+          onMemoryVerses={goMemoryVerses}
+        />
+      )}
+
+      {showMemoryVerses && (
+        <MemoryVerses
+          translation={selectedTranslation}
+          onClose={() => setShowMemoryVerses(false)}
+          onHome={goHome}
+          onLibrary={goLibrary}
+          onMemoryVerses={goMemoryVerses}
         />
       )}
       <Footer />

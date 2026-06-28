@@ -1,7 +1,8 @@
 import type { Study, StudyGroup } from './types';
+import type { MemoryItem } from './memory';
 
 const DB_NAME = 'verse-roots-studies';
-const DB_VERSION = 2;
+const DB_VERSION = 4;
 const STORE_NAME = 'studies';
 
 let dbPromise: Promise<IDBDatabase> | null = null;
@@ -13,7 +14,8 @@ export function openStudyDb(): Promise<IDBDatabase> {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
 
     req.onupgradeneeded = (event) => {
-      const db = (event.target as IDBOpenDBRequest).result;
+      const target = event.target as IDBOpenDBRequest;
+      const db = target.result;
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
         store.createIndex('verseRef',     'verseRef',     { unique: false });
@@ -22,6 +24,18 @@ export function openStudyDb(): Promise<IDBDatabase> {
       }
       if (event.oldVersion < 2) {
         db.createObjectStore('groups', { keyPath: 'id' });
+      }
+      if (event.oldVersion < 3) {
+        // Index passage reflections so we can look up existing journals on a passage.
+        const store = target.transaction!.objectStore(STORE_NAME);
+        if (!store.indexNames.contains('passageRef')) {
+          store.createIndex('passageRef', 'passageRef', { unique: false });
+        }
+      }
+      if (event.oldVersion < 4) {
+        if (!db.objectStoreNames.contains('memoryItems')) {
+          db.createObjectStore('memoryItems', { keyPath: 'id' });
+        }
       }
     };
 
@@ -104,6 +118,28 @@ export async function getStudiesByVerse(verseRef: string): Promise<Study[]> {
   });
 }
 
+export async function getStudiesByPassage(passageRef: string): Promise<Study[]> {
+  const db = await openStudyDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const store = tx.objectStore(STORE_NAME);
+    const index = store.index('passageRef');
+    const results: Study[] = [];
+    const req = index.openCursor(IDBKeyRange.only(passageRef));
+    req.onsuccess = (event) => {
+      const cursor = (event.target as IDBRequest<IDBCursorWithValue | null>).result;
+      if (cursor) {
+        results.push(cursor.value as Study);
+        cursor.continue();
+      } else {
+        results.sort((a, b) => b.updatedAt - a.updatedAt);
+        resolve(results);
+      }
+    };
+    req.onerror = () => reject(req.error);
+  });
+}
+
 export async function getStudiesByStrongs(strongs: string): Promise<Study[]> {
   const db = await openStudyDb();
   return new Promise((resolve, reject) => {
@@ -165,6 +201,39 @@ export async function deleteGroup(id: string): Promise<void> {
     const tx = db.transaction('groups', 'readwrite');
     const store = tx.objectStore('groups');
     const req = store.delete(id);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+
+// ── Memory Verses ──
+
+export async function getAllMemoryItems(): Promise<MemoryItem[]> {
+  const db = await openStudyDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('memoryItems', 'readonly');
+    const store = tx.objectStore('memoryItems');
+    const req = store.getAll();
+    req.onsuccess = () => resolve((req.result as MemoryItem[]).sort((a, b) => b.addedAt - a.addedAt));
+    req.onerror = () => reject(req.error);
+  });
+}
+
+export async function saveMemoryItem(item: MemoryItem): Promise<void> {
+  const db = await openStudyDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('memoryItems', 'readwrite');
+    const req = tx.objectStore('memoryItems').put(item);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+
+export async function deleteMemoryItem(id: string): Promise<void> {
+  const db = await openStudyDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('memoryItems', 'readwrite');
+    const req = tx.objectStore('memoryItems').delete(id);
     req.onsuccess = () => resolve();
     req.onerror = () => reject(req.error);
   });

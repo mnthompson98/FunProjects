@@ -17,7 +17,7 @@ export const STUDY_TEMPLATE: StudySection[] = [
 
 export interface Study {
   id: string;           // uuid (crypto.randomUUID())
-  verseRef: string;     // e.g. "Lam.3.22"
+  verseRef: string;     // e.g. "Lam.3.22" — for passage studies, the start verse
   title: string;        // user-editable, defaults to display ref e.g. "Lamentations 3:22"
   focusStrongs: string | null;  // Strong's number of the key word being studied
   focusWord: string | null;     // original text of the focus word
@@ -26,6 +26,28 @@ export interface Study {
   updatedAt: number;
   tags: string[];       // user-added tags, for future search
   groupId?: string | null;
+
+  // ── Passage reflections (kind === 'passage') ──
+  // Existing records have no `kind` and are treated as 'word'.
+  kind?: 'word' | 'passage';
+  methodId?: string;            // which reflection method (see study/methods.ts)
+  passageRef?: string;          // verse span, e.g. "Jhn.3.16-17" (single chapter only)
+  passageSnapshot?: PassageSnapshot;  // frozen at save time so we never re-fetch to display
+}
+
+export interface PassageSnapshot {
+  text: string;        // quoted selection, for display in the reflection + library card
+  wordIds: number[];   // stable original_word ids (for optional v2 live re-highlighting)
+}
+
+// Payload handed from the chapter Select-mode UI up to the app when the user
+// taps "Reflect". Drives creation of a passage reflection.
+export interface ReflectionSelection {
+  passageRef: string;      // verse span within one chapter, e.g. "Jhn.3.16-17"
+  startVerseRef: string;   // OSIS ref of the first verse (used as Study.verseRef)
+  verseRefs: string[];     // selected whole-verse refs
+  wordIds: number[];       // selected sub-verse word ids
+  snapshot: PassageSnapshot;
 }
 
 export interface StudyGroup {

@@ -248,8 +248,10 @@
   .side-panel {
     position: static;
     height: auto;
+    max-height: calc(100svh - var(--header-h) - 2rem);
     width: 100%; max-width: 100%; min-width: unset;
     border-left: none; border-top: 1px solid var(--border-strong);
+    overflow-y: auto;
   }
 }
 

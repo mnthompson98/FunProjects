@@ -1,0 +1,19 @@
+.overlay-nav {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+  padding: 0.6rem 1.4rem;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border-strong);
+  flex-shrink: 0;
+}
+.overlay-nav__sections { display: flex; gap: 0.4rem; }
+.overlay-nav__btn {
+  background: none; border: 1px solid transparent;
+  color: var(--text-muted); font-family: var(--font-sans);
+  font-size: 0.76rem; font-weight: 500; letter-spacing: 0.02em;
+  padding: 0.3rem 0.7rem; border-radius: var(--radius-sm); cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--transition), background var(--transition), border-color var(--transition);
+}
+.overlay-nav__btn:hover { color: var(--accent); background: var(--accent-light); }
+.overlay-nav__btn--active { color: var(--accent); border-color: var(--accent-dim); background: var(--accent-light); }
+.overlay-nav__home { color: var(--text); font-weight: 600; }

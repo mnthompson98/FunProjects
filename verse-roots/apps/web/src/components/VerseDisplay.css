@@ -1,11 +1,15 @@
 .verse-display { /* padding/max-width handled by parent */ }
 
+.verse-display__topline {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; margin-bottom: 1.1rem; flex-wrap: wrap;
+}
+
 .verse-ref {
   font-family: var(--font-serif);
   font-size: 0.8rem;
   font-weight: 400;
   color: var(--accent);
-  margin-bottom: 1.1rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }

@@ -13,7 +13,7 @@
   border: 1px solid var(--border-strong);
   border-radius: var(--radius);
   color: var(--text);
-  font-size: 0.9rem;
+  font-size: 16px;
   font-family: var(--font-sans);
   outline: none;
   transition: border-color var(--transition), box-shadow var(--transition);

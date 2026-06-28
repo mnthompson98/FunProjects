@@ -83,3 +83,42 @@ export function formatRef(osisRef: string): string {
   const bookName = OSIS_TO_DISPLAY[bookCode] ?? bookCode;
   return `${bookName} ${chapter}:${verse}`;
 }
+
+/**
+ * Build a passage ref from a sorted, unique list of verse numbers within one
+ * chapter, collapsing contiguous runs into ranges. Non-contiguous selections
+ * are kept explicit with commas.
+ * e.g. [16,17,18,20] -> "Jhn.3.16-18,20"
+ */
+export function buildPassageRef(bookCode: string, chapter: string | number, nums: number[]): string {
+  const sorted = Array.from(new Set(nums)).sort((a, b) => a - b);
+  const runs: string[] = [];
+  let start = sorted[0];
+  let prev = sorted[0];
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i] === prev + 1) { prev = sorted[i]; continue; }
+    runs.push(start === prev ? `${start}` : `${start}-${prev}`);
+    start = sorted[i];
+    prev = sorted[i];
+  }
+  runs.push(start === prev ? `${start}` : `${start}-${prev}`);
+  return `${bookCode}.${chapter}.${runs.join(',')}`;
+}
+
+/**
+ * Format a passage ref to a display string. Handles single verses, ranges, and
+ * non-contiguous comma-separated runs within one chapter.
+ * e.g. "Jhn.3.16-18,20" -> "John 3:16-18, 20"
+ */
+export function formatPassageRef(passageRef: string): string {
+  const parts = passageRef.split('.');
+  if (parts.length !== 3) return passageRef;
+
+  const [bookCode, chapter, versePart] = parts;
+  const bookName = OSIS_TO_DISPLAY[bookCode] ?? bookCode;
+  const runs = versePart.split(',').map((run) => {
+    const [start, end] = run.split('-');
+    return end && end !== start ? `${start}-${end}` : start;
+  });
+  return `${bookName} ${chapter}:${runs.join(', ')}`;
+}
