@@ -206,6 +206,9 @@ export function Library({ onOpen, onOpenReflection, onClose, onHome, onLibrary, 
           </button>
           <h2 className="library-title">My Study Library</h2>
           <div className="library-header-actions">
+            <button className="library-action-btn library-action-btn--accent" onClick={() => setShowGroupInput(true)} title="Create a new group">
+              + New Group
+            </button>
             <button className="library-action-btn" onClick={() => setShowGroupInput((v) => !v)} title="Manage groups">
               Groups
             </button>
