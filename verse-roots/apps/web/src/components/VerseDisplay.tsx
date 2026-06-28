@@ -16,6 +16,7 @@ interface VerseDisplayProps {
   translation: string;
   onTranslationChange: (t: string) => void;
   onAddToMemory?: (ref: string, scope: 'verse' | 'chapter', display: string) => Promise<'added' | 'exists'>;
+  onReflect?: (verseRef: string) => void;
 }
 
 function buildExternalUrl(site: 'ESV' | 'NET', ref: string): string {
@@ -41,6 +42,7 @@ export function VerseDisplay({
   translation,
   onTranslationChange,
   onAddToMemory,
+  onReflect,
 }: VerseDisplayProps) {
   const [translationText, setTranslationText] = useState<string | null>(null);
   const [transLoading, setTransLoading] = useState(false);
@@ -72,12 +74,19 @@ export function VerseDisplay({
     <section className="verse-display">
       <div className="verse-display__topline">
         <h2 className="verse-ref">{formatRef(verse.ref)}</h2>
-        {onAddToMemory && (
-          <AddMemoryButton
-            label="Add to Memory"
-            onAdd={() => onAddToMemory(verse.ref, 'verse', formatRef(verse.ref))}
-          />
-        )}
+        <div className="verse-display__actions">
+          {onReflect && (
+            <button className="verse-display__reflect" onClick={() => onReflect(verse.ref)}>
+              ✎ Reflect on this verse
+            </button>
+          )}
+          {onAddToMemory && (
+            <AddMemoryButton
+              label="Add to Memory"
+              onAdd={() => onAddToMemory(verse.ref, 'verse', formatRef(verse.ref))}
+            />
+          )}
+        </div>
       </div>
 
       <TranslationBar value={translation} onChange={onTranslationChange}>
