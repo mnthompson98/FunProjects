@@ -300,6 +300,7 @@ function App() {
               translation={selectedTranslation}
               onTranslationChange={setSelectedTranslation}
               onAddToMemory={addToMemory}
+              onReflect={reflectOnVerse}
             />
           )}
 

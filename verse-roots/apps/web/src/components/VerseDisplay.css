@@ -4,6 +4,15 @@
   display: flex; align-items: center; justify-content: space-between;
   gap: 1rem; margin-bottom: 1.1rem; flex-wrap: wrap;
 }
+.verse-display__actions { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.verse-display__reflect {
+  background: var(--accent); border: 1px solid var(--accent);
+  color: #0F0D0B; font-family: var(--font-sans);
+  font-size: 0.74rem; font-weight: 600; letter-spacing: 0.02em;
+  padding: 0.3rem 0.8rem; border-radius: 99px; cursor: pointer; white-space: nowrap;
+  transition: background var(--transition), transform var(--transition);
+}
+.verse-display__reflect:hover { background: var(--accent-dark); transform: translateY(-1px); }
 
 .verse-ref {
   font-family: var(--font-serif);
