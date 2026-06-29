@@ -8,6 +8,9 @@ import { SidePanel } from './components/SidePanel';
 import { Library } from './components/Library';
 import { MemoryVerses } from './components/MemoryVerses';
 import { BookOverview } from './components/BookOverview';
+import { AuthModal } from './components/auth/AuthModal';
+import { onAuthStateChange, signOut, type User } from './lib/supabase';
+import { startSync, stopSync, fullSync } from './sync/sync';
 import { isBookCode } from './utils/bibleBooks';
 import { normalizeRef } from './normalizeRef';
 import type { OriginalWord, VerseWithWords, StrongsEntry } from './types';
@@ -54,6 +57,25 @@ function App() {
   const [reflection, setReflection] = useState<{ selection?: ReflectionSelection; study?: Study } | null>(null);
   const [recent, setRecent] = useState<RecentVerse[]>(() => getRecentVerses());
   const [bookView, setBookView] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [showAuth, setShowAuth] = useState(false);
+
+  useEffect(() => onAuthStateChange(setUser), []);
+
+  // Cloud sync while signed in: initial full sync, then re-sync on window focus
+  useEffect(() => {
+    if (!user) { stopSync(); return; }
+    let cancelled = false;
+    startSync(user.id).then(() => { if (!cancelled) showToast('Library synced ✓'); });
+    const onFocus = () => { void fullSync(); };
+    window.addEventListener('focus', onFocus);
+    return () => { cancelled = true; window.removeEventListener('focus', onFocus); };
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleSignOut = useCallback(async () => {
+    await signOut();
+    setUser(null);
+  }, []);
 
   // Always-current snapshot so loadVerse can push it without stale closures
   const snapshotRef = useRef<NavSnapshot>({
@@ -281,6 +303,9 @@ function App() {
       <Header
         onOpenLibrary={() => setShowLibrary(true)}
         onOpenMemoryVerses={() => setShowMemoryVerses(true)}
+        userEmail={user?.email ?? null}
+        onSignIn={() => setShowAuth(true)}
+        onSignOut={handleSignOut}
       />
 
       <div className="app-search">
@@ -400,6 +425,8 @@ function App() {
           onMemoryVerses={goMemoryVerses}
         />
       )}
+      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+
       <Footer />
       <Toaster />
     </div>

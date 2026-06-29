@@ -67,6 +67,35 @@
   background: var(--accent-light);
 }
 
+.header-signin-btn { color: var(--accent); border-color: var(--accent-dim); background: var(--accent-light); }
+.header-signin-btn:hover { background: var(--accent); color: #0F0D0B; border-color: var(--accent); }
+
+.header-account { position: relative; }
+.header-account__chip {
+  width: 2rem; height: 2rem; border-radius: 50%;
+  background: var(--accent); color: #0F0D0B; border: none;
+  font-family: var(--font-sans); font-weight: 700; font-size: 0.85rem; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: transform var(--transition);
+}
+.header-account__chip:hover { transform: translateY(-1px); }
+.header-account__backdrop { position: fixed; inset: 0; z-index: 90; }
+.header-account__menu {
+  position: absolute; top: calc(100% + 0.5rem); right: 0; z-index: 91;
+  background: var(--surface2); border: 1px solid var(--border-strong);
+  border-radius: var(--radius); box-shadow: var(--shadow-lg);
+  padding: 0.6rem; min-width: 180px;
+  display: flex; flex-direction: column; gap: 0.5rem;
+}
+.header-account__email { font-size: 0.78rem; color: var(--text-muted); word-break: break-all; }
+.header-account__signout {
+  background: var(--surface3); border: 1px solid var(--border-strong);
+  color: var(--text); font-family: var(--font-sans); font-size: 0.8rem; font-weight: 500;
+  padding: 0.4rem 0.7rem; border-radius: var(--radius-sm); cursor: pointer;
+  transition: color var(--transition), border-color var(--transition);
+}
+.header-account__signout:hover { color: var(--accent); border-color: var(--accent-dim); }
+
 @media (max-width: 768px) {
   .header { padding: 0 1rem; }
   /* Tagline wraps and overflows the fixed-height header on small screens */
