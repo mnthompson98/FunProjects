@@ -38,6 +38,8 @@
 }
 .memverse-intro strong { color: var(--accent); }
 
+.memverse-nudge { padding: 0.8rem 1.4rem 0; }
+
 /* Add box */
 .memverse-add {
   display: flex; gap: 0.5rem;

@@ -1,0 +1,16 @@
+.signin-nudge {
+  display: flex; align-items: center; gap: 0.6rem;
+  background: var(--accent-light); border: 1px solid var(--accent-dim);
+  border-radius: var(--radius); padding: 0.6rem 0.85rem;
+  flex-wrap: wrap;
+}
+.signin-nudge__icon { color: var(--accent); font-size: 1rem; }
+.signin-nudge__text { flex: 1; min-width: 0; font-size: 0.8rem; color: var(--text); }
+.signin-nudge__btn {
+  flex-shrink: 0;
+  background: var(--accent); border: none; color: #0F0D0B;
+  font-family: var(--font-sans); font-size: 0.76rem; font-weight: 600;
+  padding: 0.35rem 0.85rem; border-radius: 99px; cursor: pointer;
+  transition: background var(--transition), transform var(--transition);
+}
+.signin-nudge__btn:hover { background: var(--accent-dark); transform: translateY(-1px); }
