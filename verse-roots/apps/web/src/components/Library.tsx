@@ -19,6 +19,7 @@ import { getAllStudies, deleteStudy, saveStudy, getAllGroups, saveGroup, deleteG
 import { formatRef, formatPassageRef } from '../utils/formatRef';
 import { getMethod } from '../study/methods';
 import { OverlayNav } from './OverlayNav';
+import { SignInNudge } from './SignInNudge';
 import { useEscToClose } from '../hooks/useEscToClose';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { showToast } from '../utils/toast';
@@ -48,6 +49,8 @@ interface LibraryProps {
   onHome: () => void;
   onLibrary: () => void;
   onMemoryVerses: () => void;
+  signedIn: boolean;
+  onSignIn: () => void;
 }
 
 function relativeTime(ts: number): string {
@@ -72,7 +75,7 @@ function getContextSnippet(study: Study): string {
   return text.length > 100 ? text.slice(0, 100) + '…' : text;
 }
 
-export function Library({ onOpen, onOpenReflection, onClose, onHome, onLibrary, onMemoryVerses }: LibraryProps) {
+export function Library({ onOpen, onOpenReflection, onClose, onHome, onLibrary, onMemoryVerses, signedIn, onSignIn }: LibraryProps) {
   const [studies, setStudies] = useState<Study[]>([]);
   const [groups, setGroups] = useState<StudyGroup[]>([]);
   const [kindFilter, setKindFilter] = useState<KindFilter>('all');
@@ -300,6 +303,12 @@ export function Library({ onOpen, onOpenReflection, onClose, onHome, onLibrary, 
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {!signedIn && (
+          <div className="library-nudge">
+            <SignInNudge onSignIn={onSignIn} what="studies" />
           </div>
         )}
 

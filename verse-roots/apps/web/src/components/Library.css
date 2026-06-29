@@ -32,6 +32,8 @@
 
 .library-import-error { font-size: 0.8rem; color: var(--error); padding: 0.5rem 1.5rem 0; }
 
+.library-nudge { padding: 0.8rem 1.5rem 0; }
+
 .library-back {
   background: none; border: 1px solid var(--border-strong);
   color: var(--text-muted); font-size: 0.78rem; font-weight: 500; cursor: pointer;

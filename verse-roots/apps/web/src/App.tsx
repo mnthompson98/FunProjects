@@ -9,6 +9,7 @@ import { Library } from './components/Library';
 import { MemoryVerses } from './components/MemoryVerses';
 import { BookOverview } from './components/BookOverview';
 import { AuthModal } from './components/auth/AuthModal';
+import { SignInNudge } from './components/SignInNudge';
 import { onAuthStateChange, signOut, type User } from './lib/supabase';
 import { startSync, stopSync, fullSync } from './sync/sync';
 import { isBookCode } from './utils/bibleBooks';
@@ -344,6 +345,11 @@ function App() {
                   </div>
                 </div>
               )}
+              {!user && (
+                <div className="app-empty__nudge">
+                  <SignInNudge onSignIn={() => setShowAuth(true)} />
+                </div>
+              )}
             </div>
           )}
 
@@ -413,6 +419,8 @@ function App() {
           onHome={goHome}
           onLibrary={goLibrary}
           onMemoryVerses={goMemoryVerses}
+          signedIn={!!user}
+          onSignIn={() => setShowAuth(true)}
         />
       )}
 
@@ -423,6 +431,8 @@ function App() {
           onHome={goHome}
           onLibrary={goLibrary}
           onMemoryVerses={goMemoryVerses}
+          signedIn={!!user}
+          onSignIn={() => setShowAuth(true)}
         />
       )}
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}

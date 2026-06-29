@@ -6,6 +6,7 @@ import { normalizeRef } from '../normalizeRef';
 import { formatRef } from '../utils/formatRef';
 import { MemorySession } from './MemorySession';
 import { OverlayNav } from './OverlayNav';
+import { SignInNudge } from './SignInNudge';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { getStreak, bumpStreak, isStreakActive } from '../utils/streak';
 import { showToast } from '../utils/toast';
@@ -17,6 +18,8 @@ interface MemoryVersesProps {
   onHome: () => void;
   onLibrary: () => void;
   onMemoryVerses: () => void;
+  signedIn: boolean;
+  onSignIn: () => void;
 }
 
 function toFirstVerseRef(displayRef: string): string {
@@ -37,7 +40,7 @@ function relativeTime(ts: number): string {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-export function MemoryVerses({ translation, onClose, onHome, onLibrary, onMemoryVerses }: MemoryVersesProps) {
+export function MemoryVerses({ translation, onClose, onHome, onLibrary, onMemoryVerses, signedIn, onSignIn }: MemoryVersesProps) {
   const [items, setItems] = useState<MemoryItem[]>([]);
   const [addInput, setAddInput] = useState('');
   const [addError, setAddError] = useState('');
@@ -142,6 +145,12 @@ export function MemoryVerses({ translation, onClose, onHome, onLibrary, onMemory
           <button className="memverse-back" onClick={onClose}>← Back</button>
           <h2 className="memverse-title">Memory Verses</h2>
         </div>
+
+        {!signedIn && (
+          <div className="memverse-nudge">
+            <SignInNudge onSignIn={onSignIn} what="memory verses" />
+          </div>
+        )}
 
         <div className="memverse-add">
           <input
