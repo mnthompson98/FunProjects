@@ -105,8 +105,8 @@ export function AuthModal({ onClose }: AuthModalProps) {
             )}
 
             <p className="auth-modal__fine-print">
-              Signing in lets us sync your library across devices (coming soon). Your studies are
-              always saved on this device for free.
+              Signing in syncs your studies, reflections, groups, and memory verses across all your
+              devices. Your library is always saved on this device too.
             </p>
           </>
         )}

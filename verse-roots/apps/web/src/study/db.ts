@@ -7,6 +7,20 @@ const STORE_NAME = 'studies';
 
 let dbPromise: Promise<IDBDatabase> | null = null;
 
+// ── Change notifications (used by the cloud-sync layer) ──
+export type SyncKind = 'study' | 'group' | 'memory';
+export type SyncChange =
+  | { kind: SyncKind; op: 'put'; id: string; data: unknown }
+  | { kind: SyncKind; op: 'delete'; id: string };
+
+let changeListener: ((c: SyncChange) => void) | null = null;
+export function setSyncChangeListener(fn: ((c: SyncChange) => void) | null): void {
+  changeListener = fn;
+}
+function emitChange(c: SyncChange): void {
+  if (changeListener) changeListener(c);
+}
+
 export function openStudyDb(): Promise<IDBDatabase> {
   if (dbPromise) return dbPromise;
 
@@ -57,7 +71,7 @@ export async function saveStudy(study: Study): Promise<void> {
     const tx = db.transaction(STORE_NAME, 'readwrite');
     const store = tx.objectStore(STORE_NAME);
     const req = store.put(study);
-    req.onsuccess = () => resolve();
+    req.onsuccess = () => { emitChange({ kind: 'study', op: 'put', id: study.id, data: study }); resolve(); };
     req.onerror = () => reject(req.error);
   });
 }
@@ -168,7 +182,7 @@ export async function deleteStudy(id: string): Promise<void> {
     const tx = db.transaction(STORE_NAME, 'readwrite');
     const store = tx.objectStore(STORE_NAME);
     const req = store.delete(id);
-    req.onsuccess = () => resolve();
+    req.onsuccess = () => { emitChange({ kind: 'study', op: 'delete', id }); resolve(); };
     req.onerror = () => reject(req.error);
   });
 }
@@ -190,7 +204,7 @@ export async function saveGroup(group: StudyGroup): Promise<void> {
     const tx = db.transaction('groups', 'readwrite');
     const store = tx.objectStore('groups');
     const req = store.put(group);
-    req.onsuccess = () => resolve();
+    req.onsuccess = () => { emitChange({ kind: 'group', op: 'put', id: group.id, data: group }); resolve(); };
     req.onerror = () => reject(req.error);
   });
 }
@@ -201,7 +215,7 @@ export async function deleteGroup(id: string): Promise<void> {
     const tx = db.transaction('groups', 'readwrite');
     const store = tx.objectStore('groups');
     const req = store.delete(id);
-    req.onsuccess = () => resolve();
+    req.onsuccess = () => { emitChange({ kind: 'group', op: 'delete', id }); resolve(); };
     req.onerror = () => reject(req.error);
   });
 }
@@ -224,7 +238,7 @@ export async function saveMemoryItem(item: MemoryItem): Promise<void> {
   return new Promise((resolve, reject) => {
     const tx = db.transaction('memoryItems', 'readwrite');
     const req = tx.objectStore('memoryItems').put(item);
-    req.onsuccess = () => resolve();
+    req.onsuccess = () => { emitChange({ kind: 'memory', op: 'put', id: item.id, data: item }); resolve(); };
     req.onerror = () => reject(req.error);
   });
 }
@@ -234,7 +248,7 @@ export async function deleteMemoryItem(id: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const tx = db.transaction('memoryItems', 'readwrite');
     const req = tx.objectStore('memoryItems').delete(id);
-    req.onsuccess = () => resolve();
+    req.onsuccess = () => { emitChange({ kind: 'memory', op: 'delete', id }); resolve(); };
     req.onerror = () => reject(req.error);
   });
 }

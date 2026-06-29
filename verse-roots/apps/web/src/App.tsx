@@ -10,6 +10,7 @@ import { MemoryVerses } from './components/MemoryVerses';
 import { BookOverview } from './components/BookOverview';
 import { AuthModal } from './components/auth/AuthModal';
 import { onAuthStateChange, signOut, type User } from './lib/supabase';
+import { startSync, stopSync, fullSync } from './sync/sync';
 import { isBookCode } from './utils/bibleBooks';
 import { normalizeRef } from './normalizeRef';
 import type { OriginalWord, VerseWithWords, StrongsEntry } from './types';
@@ -60,6 +61,16 @@ function App() {
   const [showAuth, setShowAuth] = useState(false);
 
   useEffect(() => onAuthStateChange(setUser), []);
+
+  // Cloud sync while signed in: initial full sync, then re-sync on window focus
+  useEffect(() => {
+    if (!user) { stopSync(); return; }
+    let cancelled = false;
+    startSync(user.id).then(() => { if (!cancelled) showToast('Library synced ✓'); });
+    const onFocus = () => { void fullSync(); };
+    window.addEventListener('focus', onFocus);
+    return () => { cancelled = true; window.removeEventListener('focus', onFocus); };
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSignOut = useCallback(async () => {
     await signOut();
